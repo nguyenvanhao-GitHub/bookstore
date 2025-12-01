@@ -1,0 +1,27 @@
+body.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+.navbar.dark-mode,
+footer.dark-mode {
+  background-color: #1f1f1f !important;
+  color: #fff !important;
+}
+
+.card.dark-mode,
+.container.dark-mode,
+.form-control.dark-mode {
+  background-color: #1e1e1e !important;
+  color: #fff !important;
+  border-color: #444 !important;
+}
+
+a.dark-mode, a.dark-mode:hover {
+  color: #ffb86c !important;
+}
+
+.btn.dark-mode {
+  background-color: #333 !important;
+  color: #fff !important;
+}

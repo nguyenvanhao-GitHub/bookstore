@@ -1,0 +1,1429 @@
+/* ============================================ */
+/*     HEADER - RESPONSIVE & OPTIMIZED          */
+/* ============================================ */
+
+/* ===== BASE VARIABLES ===== */
+:root {
+    --header-height: 70px;
+    --header-mobile: 64px;
+
+    /* Màu chủ đạo */
+    --primary-color: #333652;        /* xanh navy */
+    --primary-hover: #252841;        /* xanh navy đậm hơn */
+    --accent-color: #F7C948;
+    --underline-height: 3px;
+
+    /* Màu chữ */
+    --text-color: #333652;           /* đồng bộ với primary */
+    --text-active: #F7C948;
+    /* Màu nền */
+    --bg-white: #ffffff;
+    --bg-light: #E9EAEC;             /* nền sáng theo palette */
+
+    /* Border */
+    --border-color: #90ADC6;         /* viền nhẹ xanh pastel */
+
+    /* Shadow */
+    --shadow-sm: 0 2px 10px rgba(51, 54, 82, 0.06);
+    --shadow-md: 0 8px 24px rgba(51, 54, 82, 0.12);
+
+    /* Transition */
+    --transition: all 0.3s ease;
+}
+
+/* ===== BASE NAVBAR ===== */
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: var(--bg-white);
+    box-shadow: var(--shadow-sm);
+}
+
+.primary-navbar {
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+}
+
+.primary-navbar .container-fluid {
+    padding: 0 1.5rem;
+}
+
+.navbar-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    gap: 1.5rem;
+    max-width: 100%;
+}
+
+/* ===== LOGO ===== */
+.brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: var(--transition);
+    min-width: fit-content;
+}
+
+.brand-logo:hover {
+    color: var(--primary-hover);
+    transform: translateY(-2px);
+}
+
+.brand-logo i {
+    font-size: 1.8rem;
+}
+
+.brand-logo span {
+    color: #222;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+}
+
+/* ===== NAVIGATION LINKS (Desktop) ===== */
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    flex-wrap: nowrap;
+    color:  #333652;
+}
+
+.nav-links li a {
+    position: relative; /* Quan trọng cho pseudo-element */
+    display: block;
+    padding: 10px 22px;
+    text-decoration: none;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    letter-spacing: 0.3px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    color:  var(--text-color);
+}
+
+/* Hiệu ứng gạch chân động */
+.nav-links li a::after {
+    content: '';
+    position: absolute;
+    bottom: -5px; /* Vị trí gạch chân */
+    left: 50%;
+    width: 0;
+    height: var(--underline-height);
+    background-color: var(--accent-color);
+    transition: width 0.3s ease-out, left 0.3s ease-out;
+    border-radius: 2px;
+}
+
+.nav-links li a:hover {
+      color: var(--text-active);
+}
+
+.nav-links li a:hover::after {
+    width: calc(100% - 24px); /* Chiều rộng gạch chân khi hover (100% trừ padding) */
+    left: 12px;
+}
+
+/* ====================================================== */
+/* HIỆU ỨNG ACTIVE MỚI (Màu vàng và gạch chân vàng) */
+/* ====================================================== */
+
+/* 1. Màu chữ active */
+.nav-links li a.active {
+    color: var(--text-active); /* Màu chữ vàng */
+    background: none; /* Đảm bảo không có background lạ */
+}
+
+/* 2. Gạch chân active */
+.nav-links li a.active::after {
+   content: '';
+   width: calc(100% - 20px); /* Kích thước đường gạch chân khi active */
+   left: 10px; /* Căn chỉnh để gạch chân nằm giữa */
+   background-color: var(--accent-color); /* Màu vàng */
+   transition: width 0.3s ease-out, left 0.3s ease-out;
+}
+
+/* Đảm bảo trạng thái active vẫn được ưu tiên hơn hover */
+.nav-links li a.active:hover {
+   color: var(--text-active);
+   background: none;
+}
+.nav-links li a.active:hover::after {
+   width: calc(100% - 20px);
+   left: 10px;
+}
+
+/* ... (Các phần còn lại giữ nguyên) ... */
+
+/* ===== NAV RIGHT ACTIONS ===== */
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+/* ========================================== */
+/*     CẬP NHẬT: SEARCH CONTAINER (Desktop)   */
+/* ========================================== */
+.search-container {
+    position: relative;
+    flex-shrink: 1;
+    min-width: 0;
+    margin-right: 4px;
+}
+
+.search-wrapper {
+    display: flex;
+    align-items: center;
+    background: var(--bg-light);
+    border: 2px solid var(--border-color);
+    border-radius: 24px;
+    padding: 0 6px 0 18px;
+    transition: var(--transition);
+    height: 44px;
+}
+
+.search-wrapper:focus-within {
+    border-color: var(--primary-color);
+    background: var(--bg-white);
+    box-shadow: var(--shadow-sm); /* Sử dụng shadow đã định */
+}
+
+.search-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0 12px;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    width: 100%;
+    min-width: 180px;
+}
+
+.search-input::placeholder {
+    color: #999;
+}
+
+.search-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.search-icon:hover {
+    background: var(--primary-hover);
+    transform: scale(1.05);
+}
+/*     KẾT THÚC CẬP NHẬT     */
+/* ========================================== */
+
+/* Search Results Dropdown */
+.search-results {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    max-height: 450px;
+    overflow-y: auto;
+    display: none;
+    z-index: 100;
+}
+
+.search-results.active {
+    display: block;
+    animation: fadeIn 0.2s ease;
+}
+
+/* Search Result Items */
+.search-result-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f5f5f5;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background: #fef6f5;
+    padding-left: 20px;
+}
+
+.search-result-item img {
+    width: 50px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.search-result-item .book-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.search-result-item .book-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.search-result-item .book-author,
+.search-result-item .book-price,
+.search-result-item .book-category {
+    font-size: 0.8rem;
+    color: #666;
+    margin: 2px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.search-result-item .book-author i,
+.search-result-item .book-price i,
+.search-result-item .book-category i {
+    color: var(--primary-color);
+    font-size: 0.75rem;
+}
+
+.search-result-item .book-price {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.search-result-item .book-category {
+    font-style: italic;
+}
+
+/* No Results & Loading State */
+.no-results,
+.search-loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.no-results i,
+.search-loading i {
+    font-size: 3rem;
+    color: #ddd;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.search-loading i {
+    color: var(--primary-color);
+    font-size: 2rem;
+    animation: spin 1s linear infinite;
+}
+
+.search-loading span {
+    display: block;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.no-results p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Spinner Animation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+
+/* Custom Scrollbar for Search Results */
+.search-results::-webkit-scrollbar,
+.mobile-search-results::-webkit-scrollbar {
+    width: 6px;
+}
+
+.search-results::-webkit-scrollbar-track,
+.mobile-search-results::-webkit-scrollbar-track {
+    background: #f5f5f5;
+    border-radius: 0 12px 12px 0;
+}
+
+.search-results::-webkit-scrollbar-thumb,
+.mobile-search-results::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
+}
+
+.search-results::-webkit-scrollbar-thumb:hover,
+.mobile-search-results::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-hover);
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-item {
+    position: relative;
+}
+
+.action-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: #e4e6eb;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.action-btn:hover {
+    background: var(--accent-color); /* Sử dụng accent-color cho hover */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(247, 201, 72, 0.4);
+}
+
+.action-btn i {
+    font-size: 1.15rem;
+    color: #1c1e21;
+    transition: var(--transition);
+}
+
+.action-btn img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Badge */
+.badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--primary-color);
+    color: white;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+}
+
+/* User Avatar */
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    /* Cập nhật màu gradient để phù hợp hơn với primary color */
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.user-avatar.large {
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
+}
+
+/* ===== DROPDOWNS ===== */
+.action-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: var(--transition);
+    min-width: 200px;
+    overflow: hidden;
+    z-index: 1001;
+}
+
+.action-item:hover .action-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.action-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 16px;
+    width: 12px;
+    height: 12px;
+    background: white;
+    transform: rotate(45deg);
+    box-shadow: -2px -2px 4px rgba(0,0,0,0.06);
+}
+
+/* Cart Dropdown */
+.cart-dropdown {
+    width: 380px;
+    max-width: calc(100vw - 24px);
+}
+
+.dropdown-header {
+    padding: 16px 20px;
+    /* Cập nhật màu gradient để phù hợp hơn với primary color */
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cart-items {
+    max-height: 340px;
+    overflow-y: auto;
+    padding: 12px;
+}
+
+.cart-items::-webkit-scrollbar {
+    width: 6px;
+}
+
+.cart-items::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
+}
+
+.cart-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+}
+
+.cart-item:hover {
+    background: #fef6f5;
+}
+
+.cart-item img {
+    width: 60px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.item-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.item-details h6 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0 0 4px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.item-details p {
+    font-size: 0.8rem;
+    color: #666;
+    margin: 0 0 8px 0;
+    font-style: italic;
+}
+
+.item-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.price {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 0.95rem;
+}
+
+.quantity {
+    background: #f5f5f5;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: #999;
+}
+
+.empty-state i {
+    font-size: 3.5rem;
+    color: #ddd;
+    margin-bottom: 12px;
+}
+
+.dropdown-footer {
+    padding: 16px 20px;
+    background: var(--bg-light);
+    border-top: 1px solid #e0e0e0;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+}
+
+.total-row strong {
+    color: var(--primary-color);
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-outline,
+.btn-primary {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: var(--transition);
+    border: none;
+    cursor: pointer;
+}
+
+.btn-outline {
+    background: white;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+}
+
+.btn-outline:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    /* Cập nhật màu gradient để phù hợp hơn với primary color */
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(51, 54, 82, 0.4); /* Thay đổi màu shadow phù hợp */
+}
+
+/* User Dropdown */
+.user-dropdown {
+    width: 260px;
+    max-width: calc(100vw - 24px);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.95rem;
+}
+
+.user-email {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 2px;
+    word-break: break-all;
+}
+
+.dropdown-menu {
+    padding: 8px 0;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background: #fef6f5;
+    color: var(--primary-color);
+    padding-left: 25px;
+}
+
+.dropdown-item i {
+    width: 20px;
+    text-align: center;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: #f0f0f0;
+    margin: 8px 0;
+}
+
+.dropdown-item.logout {
+    color: #f44336;
+}
+
+.dropdown-item.logout:hover {
+    background: #ffebee;
+    color: #f44336;
+}
+
+/* ===== MOBILE MENU BUTTON ===== */
+.mobile-menu-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: var(--bg-light); /* Thay thế màu cố định bằng biến */
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.mobile-menu-btn:hover {
+    background: var(--accent-color); /* Sử dụng accent-color cho hover */
+}
+
+.mobile-menu-btn i {
+    font-size: 1.3rem;
+    color: var(--text-color);
+}
+
+/* ===== MOBILE SEARCH ===== */
+.mobile-search {
+    padding: 10px 0;
+    background: white;
+    border-top: 1px solid #e8e8e8;
+    position: relative;
+}
+
+.mobile-search .container-fluid {
+    padding: 0 1rem;
+    position: relative;
+}
+
+.mobile-search .search-box {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    background: var(--bg-light); /* Sử dụng biến */
+    border: 2px solid transparent;
+    border-radius: 24px;
+    padding: 0 6px 0 16px;
+    height: 44px;
+    transition: var(--transition);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.mobile-search .search-box:focus-within {
+    border-color: var(--primary-color);
+    background: white;
+    box-shadow: 0 3px 12px rgba(51, 54, 82, 0.15); /* Thay đổi màu shadow phù hợp */
+}
+
+.mobile-search .search-box input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0 12px;
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+.mobile-search .search-box input::placeholder {
+    color: #999;
+}
+
+.mobile-search .search-submit {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.mobile-search .search-submit:hover {
+    background: var(--primary-hover);
+    transform: scale(1.05);
+}
+
+.mobile-search .search-submit:active {
+    transform: scale(0.95);
+}
+
+/* Mobile Search Results */
+.mobile-search-results {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 1rem;
+    right: 1rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    max-height: 400px;
+    overflow-y: auto;
+    display: none;
+    z-index: 1002;
+}
+
+.mobile-search-results.active {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== OFFCANVAS (Mobile Menu) ===== */
+.offcanvas {
+    max-width: 320px;
+    width: 85%;
+}
+
+.offcanvas-header {
+    padding: 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.offcanvas-body {
+    padding: 20px;
+}
+
+.mobile-user-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    /* Cập nhật màu gradient để phù hợp hơn với primary color */
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    border-radius: 12px;
+    color: white;
+    margin-bottom: 24px;
+}
+
+.mobile-user-card .user-avatar.large {
+    background: rgba(255,255,255,0.3);
+}
+
+.mobile-user-card .user-name {
+    color: white;
+}
+
+.mobile-user-card .user-email {
+    color: rgba(255,255,255,0.9);
+}
+
+.mobile-nav-section {
+    margin-bottom: 24px;
+}
+
+.mobile-nav-section h6 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    margin-bottom: 12px;
+    font-weight: 600;
+    padding-left: 5px;
+}
+
+.mobile-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: var(--text-color);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    margin-bottom: 4px;
+}
+
+.mobile-nav-item:hover {
+    background: #fef6f5;
+    color: var(--primary-color);
+}
+
+.mobile-nav-item i {
+    width: 20px;
+    text-align: center;
+}
+
+.mobile-nav-item.logout {
+    color: #f44336;
+}
+
+.mobile-nav-item.logout:hover {
+    background: #ffebee;
+}
+
+.mobile-language {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-top: 1px solid #f0f0f0;
+}
+
+.mobile-language > span {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.language-toggle {
+    display: flex;
+    gap: 8px;
+}
+
+.language-toggle a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 20px;
+    text-decoration: none;
+    color: var(--text-color);
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.language-toggle a img {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+}
+
+.language-toggle a.active,
+.language-toggle a:hover {
+    border-color: var(--primary-color);
+    background: rgba(51, 54, 82, 0.1); /* Thay đổi màu nền hover cho phù hợp với primary-color */
+    color: var(--primary-color);
+}
+
+/* ============================================ */
+/*              RESPONSIVE DESIGN                */
+/* ============================================ */
+
+/* Large Desktop (1400px+) */
+@media (min-width: 1400px) {
+    .primary-navbar .container-fluid {
+        max-width: 1320px;
+        margin: 0 auto;
+    }
+
+    /* Kích hoạt lại min-width cho input search */
+    .search-input {
+        min-width: 280px;
+    }
+}
+
+/* Desktop (992px - 1399px) */
+@media (min-width: 992px) and (max-width: 1399px) {
+    .navbar-content {
+        gap: 1rem;
+    }
+
+    .nav-links {
+        gap: 0.25rem;
+    }
+
+    .nav-links li a {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+
+    /* Kích hoạt lại min-width cho input search */
+    .search-input {
+        min-width: 160px;
+    }
+}
+
+/* Tablet & Mobile (991px and below) */
+@media (max-width: 991px) {
+    .primary-navbar {
+        height: var(--header-mobile);
+    }
+
+    .primary-navbar .container-fluid {
+        padding: 0 0.75rem;
+    }
+
+    .navbar-content {
+        gap: 0.5rem;
+    }
+
+    .brand-logo {
+        font-size: 1.25rem;
+    }
+
+    .brand-logo i {
+        font-size: 1.4rem;
+    }
+
+    /* Hide desktop elements */
+    .nav-links,
+    .search-container,
+    .action-item.language-selector {
+        display: none !important;
+    }
+
+    /* Adjust nav-right spacing */
+    .nav-right {
+        gap: 6px;
+    }
+
+    /* Adjust action buttons */
+    .action-btn {
+        width: 40px;
+        height: 40px;
+    }
+
+    .action-btn i {
+        font-size: 1.05rem;
+    }
+
+    .mobile-menu-btn {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Adjust dropdowns for mobile */
+    .action-dropdown {
+        position: fixed !important;
+        top: calc(var(--header-mobile) + 56px) !important;
+        right: 12px !important;
+        left: 12px !important;
+        margin: 0 auto;
+        max-width: 400px;
+    }
+
+    .cart-dropdown,
+    .user-dropdown {
+        right: 12px;
+        left: 12px;
+    }
+}
+
+/* Small Tablet (768px - 991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .nav-right {
+        gap: 10px;
+    }
+}
+
+/* Mobile (576px - 767px) */
+@media (max-width: 767px) {
+    .primary-navbar .container-fluid {
+        padding: 0 0.5rem;
+    }
+
+    .navbar-content {
+        gap: 0.35rem;
+    }
+
+    .brand-logo {
+        font-size: 1.15rem;
+        gap: 6px;
+    }
+
+    .brand-logo i {
+        font-size: 1.3rem;
+    }
+
+    .nav-right {
+        gap: 5px;
+    }
+
+    .action-btn {
+        width: 38px;
+        height: 38px;
+    }
+
+    .action-btn i {
+        font-size: 1rem;
+    }
+
+    .mobile-menu-btn {
+        width: 38px;
+        height: 38px;
+    }
+
+    .mobile-menu-btn i {
+        font-size: 1.15rem;
+    }
+
+    .badge {
+        min-width: 18px;
+        height: 18px;
+        font-size: 10px;
+        top: -3px;
+        right: -3px;
+    }
+
+    /* Mobile Search Adjustments */
+    .mobile-search {
+        padding: 10px 0;
+    }
+
+    .mobile-search .container-fluid {
+        padding: 0 0.5rem;
+    }
+
+    .mobile-search .search-box {
+        height: 42px;
+        padding: 0 5px 0 14px;
+    }
+
+    .mobile-search .search-box input {
+        font-size: 0.85rem;
+        padding: 0 10px;
+    }
+
+    .mobile-search .search-submit {
+        width: 34px;
+        height: 34px;
+    }
+
+    .mobile-search-results {
+        left: 0.5rem;
+        right: 0.5rem;
+        max-height: 350px;
+    }
+
+    .search-result-item {
+        padding: 10px 12px;
+    }
+
+    .search-result-item:hover {
+        padding-left: 16px;
+    }
+
+    .search-result-item img {
+        width: 45px;
+        height: 65px;
+    }
+
+    .search-result-item .book-title {
+        font-size: 0.85rem;
+    }
+
+    .search-result-item .book-author,
+    .search-result-item .book-price,
+    .search-result-item .book-category {
+        font-size: 0.75rem;
+    }
+}
+
+/* Extra Small Mobile (375px - 575px) */
+@media (max-width: 575px) {
+    .action-dropdown {
+        top: calc(var(--header-mobile) + 52px) !important;
+    }
+
+    .cart-item img {
+        width: 50px;
+        height: 70px;
+    }
+
+    .item-details h6 {
+        font-size: 0.85rem;
+    }
+
+    .dropdown-footer {
+        padding: 12px 16px;
+    }
+
+    .total-row strong {
+        font-size: 1.1rem;
+    }
+}
+
+/* Very Small Mobile (320px - 374px) */
+@media (max-width: 374px) {
+    .primary-navbar .container-fluid {
+        padding: 0 0.35rem;
+    }
+
+    .navbar-content {
+        gap: 0.25rem;
+    }
+
+    .brand-logo {
+        font-size: 1.05rem;
+        gap: 5px;
+    }
+
+    .brand-logo i {
+        font-size: 1.2rem;
+    }
+
+    .brand-logo span {
+        font-size: 1.05rem;
+    }
+
+    .nav-right {
+        gap: 4px;
+    }
+
+    .action-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .action-btn i {
+        font-size: 0.95rem;
+    }
+
+    .badge {
+        min-width: 16px;
+        height: 16px;
+        font-size: 9px;
+        top: -2px;
+        right: -2px;
+    }
+
+    .mobile-menu-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .mobile-menu-btn i {
+        font-size: 1.1rem;
+    }
+
+    /* Mobile Search for Very Small Screens */
+    .mobile-search .container-fluid {
+        padding: 0 0.35rem;
+    }
+
+    .mobile-search .search-box {
+        height: 40px;
+        padding: 0 4px 0 12px;
+    }
+
+    .mobile-search .search-box input {
+        font-size: 0.8rem;
+        padding: 0 8px;
+    }
+
+    .mobile-search .search-submit {
+        width: 32px;
+        height: 32px;
+    }
+
+    .mobile-search-results {
+        left: 0.35rem;
+        right: 0.35rem;
+        max-height: 300px;
+    }
+
+    .search-result-item {
+        padding: 8px 10px;
+        gap: 10px;
+    }
+
+    .search-result-item:hover {
+        padding-left: 14px;
+    }
+
+    .search-result-item img {
+        width: 40px;
+        height: 60px;
+    }
+
+    .search-result-item .book-title {
+        font-size: 0.8rem;
+        margin-bottom: 3px;
+    }
+
+    .search-result-item .book-author,
+    .search-result-item .book-price,
+    .search-result-item .book-category {
+        font-size: 0.7rem;
+        gap: 4px;
+    }
+
+    .no-results {
+        padding: 30px 15px;
+    }
+
+    .no-results i {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .no-results p {
+        font-size: 0.85rem;
+    }
+
+    .offcanvas {
+        max-width: 280px;
+    }
+}
+
+/* Landscape Phones */
+@media (max-width: 991px) and (orientation: landscape) and (max-height: 500px) {
+    .primary-navbar {
+        height: 56px;
+    }
+
+    .action-btn,
+    .mobile-menu-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .mobile-search {
+        padding: 8px 0;
+    }
+
+    .mobile-search .search-box {
+        height: 38px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .main-header {
+        position: relative;
+        box-shadow: none;
+    }
+
+    .action-item,
+    .mobile-menu-btn,
+    .mobile-search {
+        display: none !important;
+    }
+}
