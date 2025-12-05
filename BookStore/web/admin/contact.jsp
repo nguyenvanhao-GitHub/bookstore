@@ -1,238 +1,187 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.sql.*, java.util.*" %>
+<%@ page import="dao.ContactDAO" %>
+<%@ page import="entity.ContactMessage" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.text.SimpleDateFormat" %>
 <%@ include file="header.jsp" %>
 
 <%
-    int totalSubscribers = 0;
-    int newToday = 0;
+    ContactDAO contactDAO = new ContactDAO();
 
+    // 1. Phân trang
+    int currentPage = 1;
+    int recordsPerPage = 10;
+    
     try {
-        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bookstore", "root", "");
-        Statement stmt = conn.createStatement();
+        if (request.getParameter("page") != null) currentPage = Integer.parseInt(request.getParameter("page"));
+        if (request.getParameter("records") != null) recordsPerPage = Integer.parseInt(request.getParameter("records"));
+    } catch (NumberFormatException e) { currentPage = 1; }
 
-        ResultSet rs1 = stmt.executeQuery("SELECT COUNT(*) FROM contact_messages");
-        if (rs1.next()) totalSubscribers = rs1.getInt(1);
+    int totalRecords = contactDAO.countMessages();
+    int totalPages = (int) Math.ceil(totalRecords * 1.0 / recordsPerPage);
+    
+    if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+    
+    int start = (currentPage - 1) * recordsPerPage;
+    int end = Math.min(start + recordsPerPage, totalRecords);
 
-        ResultSet rs2 = stmt.executeQuery("SELECT COUNT(*) FROM contact_messages WHERE DATE(submitted_at) = CURDATE()");
-        if (rs2.next()) newToday = rs2.getInt(1);
-
-        conn.close();
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
+    // 2. Lấy dữ liệu
+    List<ContactMessage> messages = contactDAO.getPaginatedMessages(start, recordsPerPage);
+    
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 %>
-<script>
-    document.querySelector('a[href="contact.jsp"]').classList.add('active');
-</script>
 
-<!-- Main Content -->
+<script>document.querySelector('a[href="contact.jsp"]').classList.add('active');</script>
+
 <div class="admin-main">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <button id="sidebar-toggle" class="btn btn-primary d-md-none">
-            <i class="fas fa-bars"></i>
-        </button>
-        <h2 class="mb-0">Contact Messages</h2>
-        <div class="btn-group">
-        </div>
+        <h2 class="mb-0"><i class="fas fa-envelope"></i> Contact Messages</h2>
     </div>
 
-       <!-- Subscriber Statistics -->
-       <div class="row g-4 mb-4">
-        <div class="col-md-6">
-            <div class="stats-card">
-                <div class="icon bg-primary text-white">
-                    <i class="fas fa-envelope"></i>
-                </div>
-                <h3><%= totalSubscribers %></h3>
-                <p class="text-muted mb-0">Total Subscribers</p>
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="card-title mb-0">All Messages</h5>
+            <div class="text-muted small">
+                Hiển thị <%= totalRecords > 0 ? start + 1 : 0 %> - <%= end %> / <%= totalRecords %> tin nhắn
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="stats-card">
-                <div class="icon bg-info text-white">
-                    <i class="fas fa-calendar"></i>
-                </div>
-                <h3><%= newToday %></h3>
-                <p class="text-muted mb-0">New Today</p>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table admin-table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Subject</th>
+                            <th>Message</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <%
+                            if (messages.isEmpty()) {
+                                out.println("<tr><td colspan='7' class='text-center py-4 text-muted'>No contact messages found.</td></tr>");
+                            } else {
+                                for (ContactMessage msg : messages) {
+                        %>
+                        <tr>
+                            <td>#<%= msg.getId() %></td>
+                            <td><%= msg.getName() %></td>
+                            <td><%= msg.getEmail() %></td>
+                            <td><%= msg.getSubject() %></td>
+                            <td class="text-truncate" style="max-width: 200px;"><%= msg.getMessage() %></td>
+                            <td><%= sdf.format(msg.getSubmittedAt()) %></td>
+                            <td>
+                                <button class="btn btn-sm btn-primary me-1" onclick="composeTo('<%= msg.getEmail() %>', 'Re: <%= msg.getSubject() %>')">
+                                    <i class="fas fa-reply"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="confirmDelete(<%= msg.getId() %>)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <% } } %>
+                    </tbody>
+                </table>
             </div>
         </div>
-    </div>
-
-    <!-- Contact Messages Table -->
-    <div class="card">
-        <div class="card-body">
-            <table class="table admin-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Subject</th>
-                        <th>Message</th>
-                        <th>Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <%
-                        try {
-                            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bookstore", "root", "");
-                            Statement stmt = conn.createStatement();
-                            ResultSet rs = stmt.executeQuery("SELECT * FROM contact_messages");
-
-                            while (rs.next()) {
-                                String submittedAt = rs.getString("submitted_at");
-                    %>
-                    <tr>
-                        <td>#<%= rs.getInt("id") %></td>
-                        <td>
-                            <i class="fas fa-user me-1"></i>
-                            <%= rs.getString("name") %>
-                        </td>
-                        <td>
-                            <i class="fas fa-envelope me-1"></i>
-                            <%= rs.getString("email") %>
-                        </td>
-                        <td><%= rs.getString("subject") %></td>
-                        <td>
-                            <%= rs.getString("message") %>
-                        </td>
-                        <td>
-                            <i class="fas fa-calendar me-1"></i>
-                            <%= submittedAt %>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-primary me-1" onclick="composeTo('<%= rs.getString("email") %>', 'Re: <%= rs.getString("subject") %>')">
-                                <i class="fas fa-reply"></i>
-                            </button>
-
-                            <button class="btn btn-sm btn-danger" onclick="confirmDelete(<%= rs.getInt("id") %>)">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                            
-                        </td>
-                    </tr>
-                    <%
-                            }
-                            conn.close();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    %>
-                </tbody>
-            </table>
+        
+        <% if (totalPages > 1) { %>
+        <div class="card-footer bg-white py-3">
+            <nav aria-label="Contact Pagination">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item <%= currentPage == 1 ? "disabled" : "" %>">
+                        <a class="page-link" href="?page=<%= currentPage - 1 %>&records=<%= recordsPerPage %>">Previous</a>
+                    </li>
+                    <% for(int i=1; i<=totalPages; i++) { %>
+                        <li class="page-item <%= i == currentPage ? "active" : "" %>">
+                            <a class="page-link" href="?page=<%= i %>&records=<%= recordsPerPage %>"><%= i %></a>
+                        </li>
+                    <% } %>
+                    <li class="page-item <%= currentPage == totalPages ? "disabled" : "" %>">
+                        <a class="page-link" href="?page=<%= currentPage + 1 %>&records=<%= recordsPerPage %>">Next</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
-    </div>
+        <% } %>
+        </div>
 </div>
 
-<!-- Email Compose Modal -->
-<div class="modal fade" id="composeModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-reply me-2"></i>Reply to Message
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form action="../ReplyContactMessageServlet" class="needs-validation" method="post" novalidate>
-                    <div class="mb-3">
-                        <label for="recipients" class="form-label">
-                            <i class="fas fa-user me-1"></i>To:
-                        </label>
-                        <input type="text" class="form-control" id="recipients" name="recipients" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label for="subject" class="form-label">
-                            <i class="fas fa-heading me-1"></i>Subject:
-                        </label>
-                        <input type="text" class="form-control" id="subject" name="subject" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="message" class="form-label">
-                            <i class="fas fa-envelope me-1"></i>Message:
-                        </label>
-                        <textarea class="form-control" id="message" name="message" rows="6" required></textarea>
-                    </div>
-                    <div class="text-end">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-paper-plane me-1"></i>Send Reply
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Add these before closing body tag -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
-    <script src="js/admin-script.js"></script>
-</body>
-</html>
-<script>
-function composeTo(email, subject) {
-    document.getElementById('recipients').value = email;
-    document.getElementById('subject').value = subject || '';
-    new bootstrap.Modal(document.getElementById('composeModal')).show();
-}
-
-function viewMessage(message) {
-    const modal = new bootstrap.Modal(document.createElement('div'));
-    modal.element.innerHTML = `
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Message Content</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="message-preview">${message}</div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal.element);
-    modal.show();
-}
-
-// Form validation
-(function () {
-    'use strict'
-    var forms = document.querySelectorAll('.needs-validation')
-    Array.prototype.slice.call(forms).forEach(function (form) {
-        form.addEventListener('submit', function (event) {
-            if (!form.checkValidity()) {
-                event.preventDefault()
-                event.stopPropagation()
-            }
-            form.classList.add('was-validated')
-        }, false)
-    })
-})()
-</script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     function confirmDelete(id) {
         Swal.fire({
-            title: 'Are you sure?',
-            text: "This message will be permanently deleted!",
+            title: 'Delete this message?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Yes, delete it!'
+            confirmButtonText: 'Yes'
         }).then((result) => {
             if (result.isConfirmed) {
                 window.location.href = '../DeleteContactMessageServlet?id=' + id;
             }
+        });
+    }
+    
+    // Logic Flash Message
+    <% 
+        String alertIcon = (String) session.getAttribute("alertIcon");
+        String alertTitle = (String) session.getAttribute("alertTitle");
+        String alertMessage = (String) session.getAttribute("alertMessage");
+
+        // XÓA thuộc tính alert khỏi Session (đảm bảo không lặp lại)
+        if (alertIcon != null) {
+            session.removeAttribute("alertIcon");
+            session.removeAttribute("alertTitle");
+            session.removeAttribute("alertMessage");
+    %>
+        Swal.fire({ 
+            icon: '<%= alertIcon %>', 
+            title: '<%= alertTitle %>', 
+            text: '<%= alertMessage != null ? alertMessage : "Thao tác hoàn thành." %>', 
+            timer: 2500, 
+            showConfirmButton: false 
+        });
+    <% } %>
+    
+    // Hàm composeTo giữ nguyên
+    function composeTo(email, subject) {
+        Swal.fire({
+            title: 'Reply to Message',
+            html: 
+                '<form id="replyForm" action="../ReplyContactMessageServlet" method="post">' +
+                '<input type="hidden" name="recipients" value="' + email + '">' +
+                '<div class="mb-3 text-start">' +
+                '<label class="form-label">To:</label>' +
+                '<input type="text" class="form-control" value="' + email + '" readonly>' +
+                '</div>' +
+                '<div class="mb-3 text-start">' +
+                '<label class="form-label">Subject:</label>' +
+                '<input type="text" name="subject" class="form-control" value="' + subject + '" required>' +
+                '</div>' +
+                '<div class="mb-3 text-start">' +
+                '<label class="form-label">Message (HTML content supported):</label>' +
+                '<textarea name="message" class="form-control" rows="5" required></textarea>' +
+                '</div>' +
+                '</form>',
+            showCancelButton: true,
+            confirmButtonText: 'Send Reply',
+            showLoaderOnConfirm: true,
+            preConfirm: () => {
+                const form = document.getElementById('replyForm');
+                if (form.checkValidity()) {
+                    form.submit(); 
+                    return true;
+                } else {
+                    Swal.showValidationMessage('Vui lòng điền đủ thông tin.');
+                    return false;
+                }
+            },
+            allowOutsideClick: () => !Swal.isLoading()
         });
     }
 </script>

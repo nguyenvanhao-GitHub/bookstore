@@ -1,0 +1,20 @@
+/* Minified responsive rules - compact for bandwidth */
+@media(max-width:991px){.navbar{padding:10px 0}.navbar-brand{font-size:1.3rem}.navbar-toggler{border:none;padding:8px;background:rgba(102,126,234,.1);border-radius:8px}.navbar-collapse{background:#fff;margin-top:15px;padding:20px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.1)}.nav-item{margin:8px 0}.nav-link{padding:12px 15px!important;border-radius:8px;transition:all .3s}.nav-right{width:100%;justify-content:space-between;margin-top:15px;padding-top:15px;border-top:1px solid #e5e7eb}.search-container{width:100%;margin:15px 0!important;order:-1}.search-input{width:100%;padding:12px 45px 12px 15px}.user-menu-container,.cart-menu-container{position:relative}.user-dropdown,.cart-dropdown{position:fixed;right:10px;left:10px;max-width:400px;margin:0 auto}
+}
+@media(max-width:768px){.hero-section{padding:60px 0 40px}.slideshow-container{height:400px}.slides img{height:400px}.slide-content h1{font-size:1.8rem}.prev,.next{width:35px;height:35px}}
+@media(max-width:767px){.new-books-section{padding:40px 0}.section-title{font-size:1.8rem;margin-bottom:25px}.book-card{margin-bottom:25px}.book-image-container img{height:320px}.book-info{padding:15px}.book-info h3{font-size:1rem}.price{font-size:1.1rem}.quick-view{padding:10px 20px;font-size:.9rem}}
+@media(max-width:480px){.col-lg-3,.col-md-6{flex:0 0 100%;max-width:100%}.book-image-container img{height:280px}}
+@media(max-width:991px){.product-container .row{flex-direction:column}.image-section{border-right:none;border-bottom:1px solid var(--border-color);padding:30px 20px}.info-section{padding:30px 20px}.book-title{font-size:1.5rem}.current-price{font-size:1.8rem}.action-buttons{flex-direction:column}.btn-add-cart{width:100%}}
+@media(max-width:767px){.book-detail-page{padding:20px 0 40px}.book-title{font-size:1.3rem}.current-price{font-size:1.5rem}}
+@media(max-width:991px){.table-header{display:none}.cart-item{grid-template-columns:1fr;padding:15px;gap:12px}.item-image{width:100%;height:auto;max-width:200px;margin:0 auto}.checkout-btn{width:100%;padding:15px}}
+@media(max-width:480px){.cart-header h2{font-size:1.3rem}.item-name{font-size:.9rem}.total-amount{font-size:1.3rem}}
+@media(max-width:1024px){.checkout-container{grid-template-columns:1fr}.order-summary{position:static;margin-top:30px}}
+@media(max-width:768px){.checkout-header h1{font-size:1.8rem}.checkout-form{padding:25px 20px}.place-order-btn{padding:15px;font-size:1rem}}
+@media(max-width:768px){.header-section h1{font-size:1.5rem}.book-title{font-size:.9rem}.order-footer{flex-direction:column}}
+@media(max-width:991px){.profile-container{padding:1rem}.profile-avatar{width:80px;height:80px}}
+@media(max-width:768px){.wishlist-header{padding:30px 15px}.col-md-3{flex:0 0 100%;max-width:100%}.card-img-top{height:280px}}
+@media(max-width:991px){.contact-section .row{flex-direction:column-reverse}.contact-info-card{margin-bottom:15px}}
+@media(max-width:991px){.footer{padding:40px 0 20px}.footer .col-lg-4{text-align:center;margin-bottom:30px}.footer-links{padding-left:0}.social-links{justify-content:center}.subscribe-form{max-width:100%}}
+@media(max-width:767px){.footer h3{font-size:1.2rem}.footer p,.footer-links li{font-size:.9rem}.social-links a{width:35px;height:35px;font-size:1rem}}
+@media(max-width:767px){.container{padding-left:15px;padding-right:15px}.btn{padding:10px 20px;font-size:.9rem}.modal-content{margin:20px}.form-control,.form-select{font-size:.95rem}.alert{font-size:.9rem;padding:12px}.mb-4{margin-bottom:1.5rem!important}.mb-5{margin-bottom:2rem!important}.py-5{padding-top:2rem!important;padding-bottom:2rem!important}}
+@media(max-width:374px){.navbar-brand{font-size:1.1rem}.book-title,.card-title{font-size:.85rem}.price,.card-text{font-size:.95rem}.btn{padding:8px 15px;font-size:.85rem}.search-input{font-size:.9rem}.section-title{font-size:1.5rem}}

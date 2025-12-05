@@ -1,778 +1,351 @@
-<%@page import="jakarta.mail.Transport"%>
-<%@page import="jakarta.mail.internet.InternetAddress"%>
-<%@page import="jakarta.mail.internet.MimeMessage"%>
-<%@page import="jakarta.mail.Session"%>
-<%@page import="jakarta.mail.Message"%>
-<%@page import="jakarta.mail.PasswordAuthentication"%>
-<%@page import="jakarta.mail.Authenticator"%>
-<%@ page import="java.sql.*, java.security.*, java.util.*, java.util.Base64" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="dao.AccountDAO" %>
+<%@ page import="dao.AccountDAO.AccountDTO" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.text.SimpleDateFormat" %>
 <%@ include file="header.jsp" %>
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
-<%!
-    public String generateSalt() {
-        try {
-            SecureRandom random = new SecureRandom();
-            byte[] salt = new byte[16];
-            random.nextBytes(salt);
-            return Base64.getEncoder().encodeToString(salt);
-        } catch (Exception e) {
-            return "defaultSalt";
-        }
-    }
- 
-    public String hashPassword(String password, String salt) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(salt.getBytes());
-            byte[] hashed = md.digest(password.getBytes("UTF-8"));
-            return Base64.getEncoder().encodeToString(hashed);
-        } catch (Exception e) {
-            return password;
-        }
-    }
-
-    public String generateRandomPassword(int length) {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!";
-        SecureRandom rnd = new SecureRandom();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            sb.append(chars.charAt(rnd.nextInt(chars.length())));
-        }
-        return sb.toString();
-    }
-
-    public void sendEmail(String toEmail, String subject, String body) {
-        final String fromEmail = "haonguyen2004hy@gmail.com";
-        final String password = "ejpk uhrq byde nxyn";
-
-        Properties props = new Properties();
-        props.put("mail.smtp.host", "smtp.gmail.com");
-        props.put("mail.smtp.port", "587");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-
-        Session session = Session.getInstance(props, new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(fromEmail, password);
-            }
-        });
-
-        try {
-            Message msg = new MimeMessage(session);
-            msg.setFrom(new InternetAddress(fromEmail, "BookStore"));
-            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-            msg.setSubject(subject);
-            msg.setText(body);
-            Transport.send(msg);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public int autoLockInactiveAccounts(Connection con, int daysInactive) throws SQLException {
-        String[] tables = {"user", "admin", "publisher"};
-        int totalLocked = 0;
-
-        for (String table : tables) {
-            String sql = "UPDATE `" + table + "` "
-                    + "SET status = 'Locked', lock_reason = 'Auto-locked: Inactive for " + daysInactive + " days' "
-                    + "WHERE status = 'Active' "
-                    + "AND (last_login IS NULL OR last_login < DATE_SUB(NOW(), INTERVAL ? DAY))";
-
-            try (PreparedStatement ps = con.prepareStatement(sql)) {
-                ps.setInt(1, daysInactive);
-                totalLocked += ps.executeUpdate();
-            }
-        }
-        return totalLocked;
-    }
-%>
+<script>document.querySelector('a[href="users.jsp"]').classList.add('active');</script>
 
 <%
-    Connection con = null;
-    Statement stmt = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    String toastType = null, toastMsg = null;
-
+    // 1. Phân trang & Tìm kiếm
+    int currentPage = 1;
+    int recordsPerPage = 10;
+    String search = request.getParameter("search");
+    
     try {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        con = DriverManager.getConnection("jdbc:mysql://localhost:3306/bookstore", "root", "");
+        if (request.getParameter("page") != null) currentPage = Integer.parseInt(request.getParameter("page"));
+        if (request.getParameter("records") != null) recordsPerPage = Integer.parseInt(request.getParameter("records"));
+    } catch (NumberFormatException e) {}
 
-        String action = request.getParameter("action");
-        String targetTable = request.getParameter("targetTable");
-        if (targetTable == null || targetTable.trim().isEmpty()) {
-            targetTable = "user";
-        }
-
-        // XỬ LÝ CÁC ACTION
-        if ("add".equals(action)) {
-            String name = request.getParameter("name");
-            String email = request.getParameter("email");
-            String role = request.getParameter("role");
-            String status = request.getParameter("status");
-            String contact = request.getParameter("contact");
-            String gender = request.getParameter("gender");
-            String rawPass = request.getParameter("password");
-
-            String salt = generateSalt();
-            String hashed = hashPassword(rawPass, salt);
-
-            String sql = "INSERT INTO `" + targetTable + "` (name,email,password,salt,role,status,contact,gender) VALUES (?,?,?,?,?,?,?,?)";
-            ps = con.prepareStatement(sql);
-            ps.setString(1, name);
-            ps.setString(2, email);
-            ps.setString(3, hashed);
-            ps.setString(4, salt);
-            ps.setString(5, role);
-            ps.setString(6, status);
-            ps.setString(7, contact);
-            ps.setString(8, gender);
-            ps.executeUpdate();
-
-            toastType = "success";
-            toastMsg = "User added successfully to " + targetTable;
-
-        } else if ("update".equals(action)) {
-            int id = Integer.parseInt(request.getParameter("id"));
-            String name = request.getParameter("name");
-            String email = request.getParameter("email");
-            String role = request.getParameter("role");
-            String status = request.getParameter("status");
-            String contact = request.getParameter("contact");
-            String gender = request.getParameter("gender");
-
-            String sql = "UPDATE `" + targetTable + "` SET name=?, email=?, role=?, status=?, contact=?, gender=? WHERE id=?";
-            ps = con.prepareStatement(sql);
-            ps.setString(1, name);
-            ps.setString(2, email);
-            ps.setString(3, role);
-            ps.setString(4, status);
-            ps.setString(5, contact);
-            ps.setString(6, gender);
-            ps.setInt(7, id);
-            ps.executeUpdate();
-
-            toastType = "info";
-            toastMsg = "User updated successfully in " + targetTable;
-
-        } else if ("delete".equals(action)) {
-            int id = Integer.parseInt(request.getParameter("id"));
-            String sql = "DELETE FROM `" + targetTable + "` WHERE id=?";
-            ps = con.prepareStatement(sql);
-            ps.setInt(1, id);
-            ps.executeUpdate();
-            toastType = "error";
-            toastMsg = "User deleted from " + targetTable;
-
-        } else if ("reset".equals(action)) {
-            int id = Integer.parseInt(request.getParameter("id"));
-            String userEmailReset = null;
-
-            ps = con.prepareStatement("SELECT email FROM `" + targetTable + "` WHERE id=?");
-            ps.setInt(1, id);
-            rs = ps.executeQuery();
-            if (rs.next()) {
-                userEmailReset = rs.getString("email");
-            }
-            rs.close();
-            ps.close();
-
-            String newPassword = generateRandomPassword(8);
-            String newSalt = generateSalt();
-            String hashed = hashPassword(newPassword, newSalt);
-
-            String sql = "UPDATE `" + targetTable + "` SET password=?, salt=? WHERE id=?";
-            ps = con.prepareStatement(sql);
-            ps.setString(1, hashed);
-            ps.setString(2, newSalt);
-            ps.setInt(3, id);
-            ps.executeUpdate();
-
-            if (userEmailReset != null) {
-                sendEmail(userEmailReset, "Password Reset", "Your new password: " + newPassword);
-            }
-
-            toastType = "warning";
-            toastMsg = "Password has been reset and sent to user's email in " + targetTable;
-
-        } else if ("lock".equals(action)) {
-            int id = Integer.parseInt(request.getParameter("id"));
-            String lockReason = request.getParameter("lockReason");
-            if (lockReason == null || lockReason.trim().isEmpty()) {
-                lockReason = "Manually locked by admin";
-            }
-
-            String sql = "UPDATE `" + targetTable + "` SET status='Locked', lock_reason=?, locked_at=NOW() WHERE id=?";
-            ps = con.prepareStatement(sql);
-            ps.setString(1, lockReason);
-            ps.setInt(2, id);
-            ps.executeUpdate();
-
-            toastType = "warning";
-            toastMsg = "Account has been locked";
-
-        } else if ("unlock".equals(action)) {
-            int id = Integer.parseInt(request.getParameter("id"));
-            String sql = "UPDATE `" + targetTable + "` SET status='Active', lock_reason=NULL, locked_at=NULL WHERE id=?";
-            ps = con.prepareStatement(sql);
-            ps.setInt(1, id);
-            ps.executeUpdate();
-
-            toastType = "success";
-            toastMsg = "Account has been unlocked";
-
-        } else if ("autolock".equals(action)) {
-            int daysInactive = Integer.parseInt(request.getParameter("daysInactive"));
-            int locked = autoLockInactiveAccounts(con, daysInactive);
-
-            toastType = "info";
-            toastMsg = "Auto-locked " + locked + " inactive accounts (>" + daysInactive + " days)";
-        }
-
-        // PHÂN TRANG
-        int currentPage = 1;
-        int recordsPerPage = 10;
-
-        String pageParam = request.getParameter("page");
-        if (pageParam != null) {
-            try {
-                currentPage = Integer.parseInt(pageParam);
-            } catch (NumberFormatException e) {
-                currentPage = 1;
-            }
-        }
-
-        String recordsParam = request.getParameter("recordsPerPage");
-        if (recordsParam != null) {
-            try {
-                recordsPerPage = Integer.parseInt(recordsParam);
-            } catch (NumberFormatException e) {
-                recordsPerPage = 10;
-            }
-        }
-
-        // ĐẾM TỔNG SỐ BẢN GHI
-        stmt = con.createStatement();
-        rs = stmt.executeQuery(
-                "SELECT COUNT(*) as total FROM ("
-                + "SELECT id FROM admin UNION ALL SELECT id FROM user UNION ALL SELECT id FROM publisher"
-                + ") as all_users"
-        );
-        rs.next();
-        int totalRecords = rs.getInt("total");
-        int totalPages = (int) Math.ceil(totalRecords * 1.0 / recordsPerPage);
-
-        if (currentPage > totalPages && totalPages > 0) {
-            currentPage = totalPages;
-        }
-        if (currentPage < 1) {
-            currentPage = 1;
-        }
-
-        rs.close();
-        stmt.close();
-
-        // LẤY DỮ LIỆU PHÂN TRANG
-        int start = (currentPage - 1) * recordsPerPage;
-
-        String query
-                = "SELECT * FROM ("
-                + "SELECT 'admin' AS source, id, name, email, role, status, contact, gender, last_login, lock_reason, locked_at FROM admin "
-                + "UNION ALL "
-                + "SELECT 'user' AS source, id, name, email, role, status, contact, gender, last_login, lock_reason, locked_at FROM user "
-                + "UNION ALL "
-                + "SELECT 'publisher' AS source, id, name, email, role, status, contact, gender, last_login, lock_reason, locked_at FROM publisher "
-                + ") as combined "
-                + "ORDER BY id DESC "
-                + "LIMIT " + start + ", " + recordsPerPage;
-
-        stmt = con.createStatement();
-        rs = stmt.executeQuery(query);
+    // 2. Lấy dữ liệu từ DAO
+    AccountDAO dao = new AccountDAO();
+    int totalRecords = dao.countAllAccounts(search);
+    int totalPages = (int) Math.ceil(totalRecords * 1.0 / recordsPerPage);
+    List<AccountDTO> users = dao.getAllAccounts(currentPage, recordsPerPage, search);
 %>
 
-<!-- ========== GIAO DIỆN ========== -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<div class="admin-main">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0"><i class="fas fa-users-cog"></i> Quản Lý Tài Khoản</h2>
+    </div>
 
-<style>
-    body {
-        background-color: #f5f6fa;
-    }
-    .card {
-        border-radius: 15px;
-    }
-    .btn-sm {
-        padding: 4px 8px;
-        font-size: 14px;
-    }
-    .table th, .table td {
-        vertical-align: middle !important;
-    }
-    #editForm {
-        animation: fadeIn 0.3s ease-in-out;
-    }
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
-    }
-    .locked-row {
-        background-color: #ffe6e6 !important;
-    }
-    .inactive-warning {
-        background-color: #fff3cd !important;
-    }
-
-    /* Pagination styles */
-    .pagination-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 20px;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-    .pagination-info {
-        color: #6c757d;
-        font-size: 14px;
-    }
-    .pagination {
-        margin-bottom: 0;
-    }
-    .page-link {
-        color: #0d6efd;
-        border-radius: 5px;
-        margin: 0 2px;
-    }
-    .page-item.active .page-link {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-    }
-    .records-per-page {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .records-per-page select {
-        width: auto;
-        display: inline-block;
-    }
-</style>
-
-<div class="container py-5">
-    <div class="card shadow-lg border-0">
-        <div class="card-header bg-primary text-white text-center py-3 rounded-top">
-            <h3 class="fw-bold mb-0">👤 Account Management</h3>
-        </div>
-        <div class="card-body p-4">
-
-            <!-- AUTO LOCK PANEL -->
-            <div class="alert alert-warning mb-4">
-                <h5 class="fw-semibold mb-3">🔒 Auto Lock Inactive Accounts</h5>
-                <form method="post" action="users.jsp" class="row g-3 align-items-end">
-                    <input type="hidden" name="action" value="autolock">
-                    <div class="col-md-4">
-                        <label class="form-label">Lock accounts inactive for (days):</label>
-                        <input type="number" name="daysInactive" class="form-control" value="90" min="1" required>
-                    </div>
-                    <div class="col-md-8">
-                        <button class="btn btn-warning px-4" onclick="return confirm('Are you sure you want to lock all inactive accounts?')">
-                            <i class="bi bi-lock-fill"></i> Run Auto Lock
-                        </button>
-                        <small class="text-muted d-block mt-2">
-                            Accounts with no login activity for the specified days will be locked automatically.
-                        </small>
-                    </div>
-                </form>
+    <div class="card mb-4 border-warning border-start border-4 shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h5 class="card-title text-warning mb-1"><i class="fas fa-user-clock"></i> Khóa Tài Khoản Không Hoạt Động</h5>
+                <p class="mb-0 text-muted small">
+                    Hệ thống sẽ tự động khóa các tài khoản không đăng nhập trong vòng <strong>90 ngày</strong>.
+                </p>
             </div>
-
-            <!-- ADD USER FORM --> 
-            <h5 class="fw-semibold mb-3 text-secondary">➕ Add New User</h5>
-            <form method="post" action="users.jsp" class="row g-3 mb-4">
-                <input type="hidden" name="action" value="add">
-                <div class="col-md-3">
-                    <label class="form-label">Name</label>
-                    <input type="text" name="name" class="form-control" required>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Email</label>
-                    <input type="email" name="email" class="form-control" required>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Password</label>
-                    <input type="password" name="password" class="form-control" required>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Role</label>
-                    <select name="role" class="form-select">
-                        <option>User</option><option>Admin</option><option>Publisher</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Status</label>
-                    <select name="status" class="form-select">
-                        <option>Active</option><option>Inactive</option><option>Locked</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Contact</label>
-                    <input type="text" name="contact" class="form-control">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Gender</label>
-                    <select name="gender" class="form-select">
-                        <option>Male</option><option>Female</option><option>Other</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Table</label>
-                    <select name="targetTable" class="form-select">
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
-                        <option value="publisher">Publisher</option>
-                    </select>
-                </div>
-                <div class="col-12 text-end">
-                    <button class="btn btn-success px-4 rounded-3">Add User</button>
-                </div>
+            <form action="../ManageAccountsServlet" method="post" class="d-flex align-items-center gap-2">
+                <input type="hidden" name="action" value="autolock">
+                <input type="hidden" name="daysInactive" value="90">
+                
+                <button class="btn btn-warning text-dark fw-bold" onclick="return confirm('Bạn có chắc muốn chạy quy trình khóa các tài khoản không hoạt động trên 90 ngày?')">
+                    <i class="fas fa-bolt"></i> Chạy Ngay
+                </button>
             </form>
+        </div>
+    </div>
 
-            <!-- RECORDS PER PAGE & SEARCH -->
-            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
-                <div class="records-per-page">
-                    <label class="form-label mb-0">Show:</label>
-                    <select class="form-select form-select-sm" onchange="changeRecordsPerPage(this.value)">
-                        <option value="5" <%= recordsPerPage == 5 ? "selected" : ""%>>5</option>
-                        <option value="10" <%= recordsPerPage == 10 ? "selected" : ""%>>10</option>
-                        <option value="25" <%= recordsPerPage == 25 ? "selected" : ""%>>25</option>
-                        <option value="50" <%= recordsPerPage == 50 ? "selected" : ""%>>50</option>
-                        <option value="100" <%= recordsPerPage == 100 ? "selected" : ""%>>100</option>
-                    </select>
-                    <span class="text-muted">records per page</span>
-                </div>
-                <input type="text" id="searchInput" class="form-control" style="max-width: 300px;" placeholder="🔍 Search users..." onkeyup="searchUsers()">
-            </div>
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                <i class="fas fa-plus-circle"></i> Thêm User Mới
+            </button>
+            
+            <form class="d-flex" method="get">
+                <input type="text" name="search" class="form-control me-2" placeholder="Tìm theo tên, email..." value="<%= search != null ? search : "" %>">
+                <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
+            </form>
+        </div>
 
-            <!-- TABLE -->
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-striped align-middle text-center" id="usersTable">
-                    <thead class="table-primary">
+                <table class="table table-hover align-middle mb-0 text-center">
+                    <thead class="bg-light text-secondary">
                         <tr>
-                        <th>Table</th><th>ID</th><th>Name</th><th>Email</th><th>Role</th>
-                        <th>Status</th><th>Last Login</th><th>Contact</th><th>Gender</th><th>Action</th>
+                            <th>Loại</th>
+                            <th class="text-start">Thông Tin User</th>
+                            <th>Vai Trò</th>
+                            <th>Trạng Thái</th>
+                            <th>Đăng Nhập Cuối</th>
+                            <th>Hành Động</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <%
-                            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm");
-                            while (rs.next()) {
-                                String status = rs.getString("status");
-                                java.sql.Timestamp lastLogin = rs.getTimestamp("last_login");
-                                String lockReason = rs.getString("lock_reason");
-
-                                long daysSinceLogin = -1;
-                                if (lastLogin != null) {
-                                    long diff = System.currentTimeMillis() - lastLogin.getTime();
-                                    daysSinceLogin = diff / (1000 * 60 * 60 * 24);
-                                }
-
-                                String rowClass = "";
-                                if ("Locked".equals(status)) {
-                                    rowClass = "locked-row";
-                                } else if (daysSinceLogin > 60) {
-                                    rowClass = "inactive-warning";
-                                }
+                        <% 
+                        if (users.isEmpty()) {
                         %>
-                        <tr class="<%= rowClass%>">
-                        <td><%= rs.getString("source")%></td>
-                        <td><%= rs.getInt("id")%></td>
-                        <td><%= rs.getString("name")%></td>
-                        <td><%= rs.getString("email")%></td>
-                        <td><%= rs.getString("role")%></td>
-                        <td>
-                        <span class="badge bg-<%= "Active".equals(status) ? "success" : ("Locked".equals(status) ? "danger" : "secondary")%>">
-                            <%= status%>
-                        </span>
-                        <% if (lockReason != null) {%>
-                        <br><small class="text-danger"><%= lockReason%></small>
-                        <% }%>
-                        </td>
-                        <td>
-                            <%= lastLogin != null ? sdf.format(lastLogin) : "Never"%>
-                            <% if (daysSinceLogin > 0) {%>
-                            <br><small class="text-muted">(<%= daysSinceLogin%> days ago)</small>
-                            <% }%>
-                        </td>
-                        <td><%= rs.getString("contact")%></td>
-                        <td><%= rs.getString("gender")%></td>
-                        <td>
-                        <button class="btn btn-sm btn-outline-primary me-1" 
-                                onclick="fillEditForm('<%= rs.getString("source")%>', '<%= rs.getInt("id")%>', '<%= rs.getString("name")%>', '<%= rs.getString("email")%>', '<%= rs.getString("role")%>', '<%= status%>', '<%= rs.getString("contact")%>', '<%= rs.getString("gender")%>')">
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
+                            <tr><td colspan="6" class="text-center py-5 text-muted"><i class="fas fa-inbox fa-2x mb-2"></i><br>Không tìm thấy tài khoản nào.</td></tr>
+                        <%
+                        } else {
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                            for (AccountDTO u : users) {
+                                boolean isLocked = "Locked".equalsIgnoreCase(u.status);
+                                String badgeClass = "admin".equals(u.source) ? "danger" : "publisher".equals(u.source) ? "warning text-dark" : "secondary";
+                        %>
+                        <tr class="<%= isLocked ? "table-danger" : "" %>">
+                            <td><span class="badge bg-<%= badgeClass %>"><%= u.source.toUpperCase() %></span></td>
+                            <td class="text-start">
+                                <div class="fw-bold text-dark"><%= u.name %></div>
+                                <div class="small text-muted"><i class="far fa-envelope me-1"></i><%= u.email %></div>
+                            </td>
+                            <td><%= u.role %></td>
+                            <td>
+                                <% if (isLocked) { %>
+                                    <span class="badge bg-danger mb-1"><i class="fas fa-lock"></i> Locked</span>
+                                    <% if (u.lockReason != null) { %>
+                                        <div class="small text-danger" style="font-size: 0.75rem; max-width: 150px; margin: 0 auto;" title="<%= u.lockReason %>">
+                                            <%= u.lockReason.length() > 20 ? u.lockReason.substring(0, 18) + "..." : u.lockReason %>
+                                        </div>
+                                    <% } %>
+                                <% } else { %>
+                                    <span class="badge bg-success">Active</span>
+                                <% } %>
+                            </td>
+                            <td class="small text-muted">
+                                <%= u.lastLogin != null ? sdf.format(u.lastLogin) : "Chưa từng" %>
+                            </td>
+                            <td>
+                                <div class="btn-group shadow-sm">
+                                    <button class="btn btn-sm btn-outline-primary" title="Sửa thông tin"
+                                            onclick="fillEditForm('<%= u.source %>', <%= u.id %>, '<%= u.name %>', '<%= u.email %>', '<%= u.role %>', '<%= u.contact %>', '<%= u.gender %>')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
 
-                        <% if (!"Locked".equals(status)) {%>
-                        <button class="btn btn-sm btn-outline-danger me-1" onclick="lockAccount('<%= rs.getString("source")%>', <%= rs.getInt("id")%>)">
-                            <i class="bi bi-lock-fill"></i>
-                        </button>
-                        <% } else {%>
-                        <form method="post" action="users.jsp" class="d-inline">
-                            <input type="hidden" name="action" value="unlock">
-                            <input type="hidden" name="id" value="<%= rs.getInt("id")%>">
-                            <input type="hidden" name="targetTable" value="<%= rs.getString("source")%>">
-                            <input type="hidden" name="page" value="<%= currentPage%>">
-                            <input type="hidden" name="recordsPerPage" value="<%= recordsPerPage%>">
-                            <button class="btn btn-sm btn-outline-success me-1">
-                                <i class="bi bi-unlock-fill"></i>
-                            </button>
-                        </form>
-                        <% }%>
+                                    <% if (!isLocked) { %>
+                                        <button class="btn btn-sm btn-outline-warning" 
+                                                onclick="lockAccount('<%= u.source %>', <%= u.id %>)" 
+                                                title="Khóa tài khoản">
+                                            <i class="fas fa-lock"></i>
+                                        </button>
+                                    <% } else { %>
+                                        <form action="../ManageAccountsServlet" method="post" class="d-inline">
+                                            <input type="hidden" name="action" value="unlock">
+                                            <input type="hidden" name="targetTable" value="<%= u.source %>">
+                                            <input type="hidden" name="id" value="<%= u.id %>">
+                                            <button class="btn btn-sm btn-outline-success" title="Mở khóa">
+                                                <i class="fas fa-unlock"></i>
+                                            </button>
+                                        </form>
+                                    <% } %>
 
-                        <form method="post" action="users.jsp" class="d-inline">
-                            <input type="hidden" name="action" value="reset">
-                            <input type="hidden" name="id" value="<%= rs.getInt("id")%>">
-                            <input type="hidden" name="targetTable" value="<%= rs.getString("source")%>">
-                            <input type="hidden" name="page" value="<%= currentPage%>">
-                            <input type="hidden" name="recordsPerPage" value="<%= recordsPerPage%>">
-                            <button class="btn btn-sm btn-outline-warning me-1">
-                                <i class="bi bi-key"></i>
-                            </button>
-                        </form>
+                                    <form action="../ManageAccountsServlet" method="post" class="d-inline" onsubmit="return confirm('Reset mật khẩu cho user này? Mật khẩu mới sẽ gửi qua email.')">
+                                        <input type="hidden" name="action" value="reset">
+                                        <input type="hidden" name="targetTable" value="<%= u.source %>">
+                                        <input type="hidden" name="id" value="<%= u.id %>">
+                                        <button class="btn btn-sm btn-outline-info" title="Cấp lại mật khẩu">
+                                            <i class="fas fa-key"></i>
+                                        </button>
+                                    </form>
 
-                        <form method="post" action="users.jsp" class="d-inline" onsubmit="return confirmDelete(event)">
-                            <input type="hidden" name="action" value="delete">
-                            <input type="hidden" name="id" value="<%= rs.getInt("id")%>">
-                            <input type="hidden" name="targetTable" value="<%= rs.getString("source")%>">
-                            <input type="hidden" name="page" value="<%= currentPage%>">
-                            <input type="hidden" name="recordsPerPage" value="<%= recordsPerPage%>">
-                            <button class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </form>
-                        </td>
+                                    <form action="../ManageAccountsServlet" method="post" class="d-inline" onsubmit="return confirm('CẢNH BÁO: Hành động này không thể hoàn tác! Xóa tài khoản?')">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="targetTable" value="<%= u.source %>">
+                                        <input type="hidden" name="id" value="<%= u.id %>">
+                                        <button class="btn btn-sm btn-outline-danger" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
-                        <% }%>
+                        <% 
+                            }
+                        } 
+                        %>
                     </tbody>
                 </table>
             </div>
-
-            <!-- PAGINATION -->
-            <div class="pagination-container">
-                <div class="pagination-info">
-                    Showing <%= Math.min(start + 1, totalRecords)%> to <%= Math.min(start + recordsPerPage, totalRecords)%> of <%= totalRecords%> entries
-                </div>
-
-                <nav aria-label="Page navigation">
-                    <ul class="pagination">
-                        <!-- First Page -->
-                        <li class="page-item <%= currentPage == 1 ? "disabled" : ""%>">
-                            <a class="page-link" href="?page=1&recordsPerPage=<%= recordsPerPage%>">
-                                <i class="bi bi-chevron-double-left"></i>
-                            </a>
+            
+            <% if (totalPages > 1) { %>
+            <div class="card-footer bg-white py-3">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                        <li class="page-item <%= currentPage == 1 ? "disabled" : "" %>">
+                            <a class="page-link" href="?page=<%= currentPage - 1 %>&search=<%= search != null ? search : "" %>">Trước</a>
                         </li>
-
-                        <!-- Previous Page -->
-                        <li class="page-item <%= currentPage == 1 ? "disabled" : ""%>">
-                            <a class="page-link" href="?page=<%= currentPage - 1%>&recordsPerPage=<%= recordsPerPage%>">
-                                <i class="bi bi-chevron-left"></i>
-                            </a>
-                        </li>
-
-                        <!-- Page Numbers -->
-                        <%
-                            int startPage = Math.max(1, currentPage - 2);
-                            int endPage = Math.min(totalPages, currentPage + 2);
-
-                            for (int i = startPage; i <= endPage; i++) {
-                        %>
-                        <li class="page-item <%= i == currentPage ? "active" : ""%>">
-                            <a class="page-link" href="?page=<%= i%>&recordsPerPage=<%= recordsPerPage%>"><%= i%></a>
-                        </li>
-                        <% }%>
-
-                        <!-- Next Page -->
-                        <li class="page-item <%= currentPage == totalPages ? "disabled" : ""%>">
-                            <a class="page-link" href="?page=<%= currentPage + 1%>&recordsPerPage=<%= recordsPerPage%>">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </li>
-
-                        <!-- Last Page -->
-                        <li class="page-item <%= currentPage == totalPages ? "disabled" : ""%>">
-                            <a class="page-link" href="?page=<%= totalPages%>&recordsPerPage=<%= recordsPerPage%>">
-                                <i class="bi bi-chevron-double-right"></i>
-                            </a>
+                        <li class="page-item disabled"><span class="page-link">Trang <%= currentPage %> / <%= totalPages %></span></li>
+                        <li class="page-item <%= currentPage == totalPages ? "disabled" : "" %>">
+                            <a class="page-link" href="?page=<%= currentPage + 1 %>&search=<%= search != null ? search : "" %>">Sau</a>
                         </li>
                     </ul>
                 </nav>
             </div>
-
-            <!-- EDIT FORM -->
-            <div id="editForm" class="card bg-light border-0 p-3 mt-4 shadow-sm" style="display:none;">
-                <h5 class="text-primary mb-3 fw-semibold">✏️ Edit Account</h5>
-                <form method="post" action="users.jsp" class="row g-3">
-                    <input type="hidden" name="action" value="update">
-                    <input type="hidden" name="id" id="editId">
-                    <input type="hidden" name="targetTable" id="editTargetTable">
-                    <input type="hidden" name="page" value="<%= currentPage%>">
-                    <input type="hidden" name="recordsPerPage" value="<%= recordsPerPage%>">
-
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold">Name</label>
-                        <input type="text" id="editName" name="name" class="form-control" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold">Email</label>
-                        <input type="email" id="editEmail" name="email" class="form-control" required>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold">Role</label>
-                        <select id="editRole" name="role" class="form-select">
-                            <option>User</option><option>Admin</option><option>Publisher</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold">Status</label>
-                        <select id="editStatus" name="status" class="form-select">
-                            <option>Active</option><option>Inactive</option><option>Locked</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold">Contact</label>
-                        <input type="text" id="editContact" name="contact" class="form-control">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold">Gender</label>
-                        <select id="editGender" name="gender" class="form-select">
-                            <option>Male</option><option>Female</option><option>Other</option>
-                        </select>
-                    </div>
-                    <div class="col-12 text-end mt-3">
-                        <button class="btn btn-info px-4 rounded-3">💾 Update</button>
-                    </div>
-                </form>
-            </div>
-
+            <% } %>
         </div>
     </div>
 </div>
 
-<script>
-    function searchUsers() {
-        let filter = document.getElementById("searchInput").value.toLowerCase();
-        document.querySelectorAll("#usersTable tbody tr").forEach(row => {
-            row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
-        });
-    }
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="../ManageAccountsServlet" method="post">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i> Thêm Người Dùng Mới</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="add">
+                    <div class="mb-3">
+                        <label class="form-label">Loại Tài Khoản</label>
+                        <select name="targetTable" class="form-select">
+                            <option value="user">Khách hàng (User)</option>
+                            <option value="publisher">Nhà xuất bản (Publisher)</option>
+                            <option value="admin">Quản trị viên (Admin)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Họ và Tên</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <input type="hidden" name="role" value="user">
+                    <input type="hidden" name="status" value="Active">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success">Tạo Mới</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-    function fillEditForm(table, id, name, email, role, status, contact, gender) {
-        document.getElementById("editId").value = id;
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="../ManageAccountsServlet" method="post">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i> Chỉnh Sửa Tài Khoản</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="targetTable" id="editTargetTable">
+                    <input type="hidden" name="id" id="editId">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Họ và Tên</label>
+                        <input type="text" name="name" id="editName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" id="editEmail" class="form-control" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Vai Trò</label>
+                            <input type="text" name="role" id="editRole" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Giới Tính</label>
+                            <select name="gender" id="editGender" class="form-select">
+                                <option value="Male">Nam</option>
+                                <option value="Female">Nữ</option>
+                                <option value="Other">Khác</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Liên Hệ</label>
+                        <input type="text" name="contact" id="editContact" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu Thay Đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Điền thông tin vào Modal Edit
+    function fillEditForm(table, id, name, email, role, contact, gender) {
         document.getElementById("editTargetTable").value = table;
+        document.getElementById("editId").value = id;
         document.getElementById("editName").value = name;
         document.getElementById("editEmail").value = email;
         document.getElementById("editRole").value = role;
-        document.getElementById("editStatus").value = status;
-        document.getElementById("editContact").value = contact;
-        document.getElementById("editGender").value = gender;
-        document.getElementById("editForm").style.display = "block";
-        window.scrollTo({top: document.getElementById("editForm").offsetTop, behavior: 'smooth'});
+        document.getElementById("editContact").value = (contact && contact !== 'null') ? contact : '';
+        document.getElementById("editGender").value = (gender && gender !== 'null') ? gender : 'Other';
+        
+        new bootstrap.Modal(document.getElementById('editModal')).show();
     }
 
-    function confirmDelete(e) {
-        e.preventDefault();
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "This account will be permanently deleted.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed)
-                e.target.submit();
-        });
-    }
-
+    // Xử lý nút Lock với Popup nhập lý do
     function lockAccount(table, id) {
         Swal.fire({
-            title: 'Lock Account',
+            title: 'Khóa tài khoản này?',
             input: 'text',
-            inputLabel: 'Reason for locking (optional)',
-            inputPlaceholder: 'Enter lock reason...',
+            inputLabel: 'Lý do khóa (bắt buộc)',
+            inputPlaceholder: 'VD: Vi phạm chính sách, spam...',
             showCancelButton: true,
-            confirmButtonText: 'Lock',
-            confirmButtonColor: '#dc3545'
+            confirmButtonText: 'Khóa Ngay',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#d33',
+            preConfirm: (reason) => {
+                if (!reason) {
+                    Swal.showValidationMessage('Vui lòng nhập lý do để tiếp tục!');
+                }
+                return reason;
+            }
         }).then((result) => {
             if (result.isConfirmed) {
+                // Tạo form ẩn để gửi dữ liệu
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = 'users.jsp';
-
-                const fields = {
-                    action: 'lock',
-                    id: id,
-                    targetTable: table,
-                    lockReason: result.value || 'Manually locked by admin',
-                    page: '<%= currentPage%>',
-                    recordsPerPage: '<%= recordsPerPage%>'
+                form.action = '../ManageAccountsServlet';
+                
+                const inputs = {
+                    'action': 'lock',
+                    'targetTable': table,
+                    'id': id,
+                    'lockReason': result.value
                 };
-
-                for (let key in fields) {
+                for (const [key, value] of Object.entries(inputs)) {
                     const input = document.createElement('input');
                     input.type = 'hidden';
                     input.name = key;
-                    input.value = fields[key];
+                    input.value = value;
                     form.appendChild(input);
                 }
-
+                
                 document.body.appendChild(form);
                 form.submit();
             }
         });
     }
 
-    function changeRecordsPerPage(value) {
-        window.location.href = '?page=1&recordsPerPage=' + value;
-    }
-
-    <% if (toastMsg != null) {%>
-    window.onload = function () {
+    // Hiển thị thông báo kết quả (Toast) từ Session (LOGIC NÀY ĐÃ ĐÚNG)
+    <% 
+        String alertIcon = (String) session.getAttribute("alertIcon");
+        if (alertIcon != null) {
+            String title = (String) session.getAttribute("alertTitle");
+            String msg = (String) session.getAttribute("alertMessage");
+            session.removeAttribute("alertIcon");
+            session.removeAttribute("alertTitle"); 
+            session.removeAttribute("alertMessage");
+    %>
         Swal.fire({
-            toast: true,
-            icon: '<%= toastType%>',
-            title: '<%= toastMsg%>',
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true
+            icon: '<%= alertIcon %>',
+            title: '<%= title %>',
+            text: '<%= msg %>',
+            timer: 2500,
+            showConfirmButton: false
         });
-    };
     <% } %>
 </script>
-
-<%
-    } catch (Exception e) {
-        out.println("<div class='alert alert-danger text-center mt-3'>❌ Error: " + e.getMessage() + "</div>");
-        e.printStackTrace();
-    } finally {
-        if (rs != null) {
-            rs.close();
-        }
-        if (stmt != null) {
-            stmt.close();
-        }
-        if (ps != null) {
-            ps.close();
-        }
-        if (con != null) {
-            con.close();
-        }
-    }
-%>

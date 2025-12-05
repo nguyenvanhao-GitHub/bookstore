@@ -48,6 +48,9 @@
                 <a class="nav-link" href="publisher-profile.jsp">
                     <i class="fas fa-user-circle"></i> Profile
                 </a>
+                  <a class="nav-link" href="publisher-dashboard.jsp">
+                    <i class="fas fa-user-circle"></i> Statistical
+                </a>
             </nav>
             <div class="mt-auto p-3">
                 <form action="../PublisherLogoutServlet" method="post">

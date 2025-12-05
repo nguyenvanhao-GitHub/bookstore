@@ -1,105 +1,134 @@
-<%@ page import="java.sql.*" %>
+<%@ page import="java.sql.Timestamp" %>
+<%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="dao.AdminDAO" %>
+<%@ page import="entity.Admin" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ include file="header.jsp" %>
 <%
-    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    response.setHeader("Pragma", "no-cache");
-    response.setDateHeader("Expires", 0);
-%>
-<%
-    // Check session attributes for admin login
-    String userName = (String) session.getAttribute("adminName");
     String userEmail = (String) session.getAttribute("adminEmail");
-    String userRole = (String) session.getAttribute("userRole");
-
-    if (userName == null || userEmail == null || !"admin".equals(userRole)) {
-        response.sendRedirect("login.jsp");
-        return;
-    }
-
-    // Database connection details
-    String dbURL = "jdbc:mysql://localhost:3306/bookstore";
-    String dbUser = "root";
-    String dbPass = "";
     
-    // Initialize admin variables
-    String contact = "", gender = "", lastLogin = "", lastLogout = "", status = "";
+    // --- BỔ SUNG LOGIC FLASH MESSAGE ---
+    String alertIcon = (String) session.getAttribute("alertIcon");
+    String alertTitle = (String) session.getAttribute("alertTitle");
+    String alertMessage = (String) session.getAttribute("alertMessage");
 
-    try {
-        Class.forName("com.mysql.cj.jdbc.Driver"); // Load MySQL driver
-        Connection conn = DriverManager.getConnection(dbURL, dbUser, dbPass);
-        String query = "SELECT id, name, email, contact, gender, last_login, last_logout, status FROM admin WHERE email=?";
-        
-        PreparedStatement stmt = conn.prepareStatement(query);
-        stmt.setString(1, userEmail);
-        ResultSet rs = stmt.executeQuery();
-        
-        if (rs.next()) {
-            userName = rs.getString("name");
-            contact = rs.getString("contact");
-            gender = rs.getString("gender");
-            lastLogin = rs.getString("last_login");
-            lastLogout = rs.getString("last_logout");
-            status = rs.getString("status");
-        }
-        
-        rs.close();
-        stmt.close();
-        conn.close();
-    } catch (Exception e) {
-        e.printStackTrace();
+    // XÓA các thuộc tính Session ngay lập tức
+    if (alertIcon != null) {
+        session.removeAttribute("alertIcon");
+        session.removeAttribute("alertTitle");
+        session.removeAttribute("alertMessage");
     }
+    // --- END LOGIC FLASH MESSAGE ---
+    
+    // [SỬA LỖI] Thay thế logic DB cũ bằng cách gọi DAO
+    AdminDAO dao = new AdminDAO();
+    Admin admin = dao.getAdminByEmail(userEmail);
+    
+    // Kiểm tra và lấy dữ liệu
+    String userName = admin != null ? admin.getName() : (String) session.getAttribute("adminName");
+    String contact = admin != null ? admin.getContact() : "";
+    String status = admin != null ? admin.getStatus() : "N/A";
+    Timestamp lastLogin = admin != null ? admin.getLastLogin() : null;
+    Timestamp lastLogout = admin != null ? admin.getLastLogout() : null;
+
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 %>
 
-<script>
-    document.querySelector('a[href="admin-profile.jsp"]').classList.add('active');
-</script>
+<script>document.querySelector('a[href="admin-profile.jsp"]').classList.add('active');</script>
 
-<!-- Main Content -->
 <div class="admin-main">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <button id="sidebar-toggle" class="btn btn-primary d-md-none">
-            <i class="fas fa-bars"></i>
-        </button>
-        <h2 class="mb-0">Admin Profile</h2>
-    </div>
-
-    <!-- <div class="row"> -->
-        <!-- Profile Image and Basic Info -->
+    <h2 class="mb-4">Admin Profile</h2>
+    <div class="row">
         <div class="col-md-4">
-            <div class="admin-profile">
-                <div class="profile-header">
-                    <img src="../images/admin.png" alt="Admin Avatar" class="profile-avatar">
-                    <h4 class="mt-3"><%= userName %></h4>
-                    <p class="text-muted mb-0"><%= userEmail %></p>
-                    <p class="text-muted mb-0"><%= contact %></p>
+            <div class="card border-0 shadow-sm text-center p-4">
+                <div class="mb-3">
+                    <img src="../images/admin.png" alt="Admin" class="rounded-circle img-thumbnail" style="width: 120px;">
                 </div>
+                <h4 class="mb-1"><%= userName %></h4>
+                <p class="text-muted"><%= userEmail %></p>
+                <span class="badge bg-success mb-3"><%= status != null ? status : "Active" %></span>
+                <p><i class="fas fa-phone me-2"></i> <%= contact != null ? contact : "N/A" %></p>
             </div>
         </div>
 
-        <!-- Profile Information 
         <div class="col-md-8">
-            <div class="admin-profile">
-                <h4 class="mb-4">Profile Info</h4>
-                <form id="adminProfileForm" class="needs-validation" novalidate>
-                    <div class="mb-3">
-                        <label for="adminName" class="form-label">Name</label>
-                        <input type="text" class="form-control" id="adminName" value="<%= userName %>" readonly>
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-clock me-2 text-warning"></i> Activity Log</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded bg-light">
+                                <small class="text-muted d-block">Last Login</small>
+                                <h6 class="mb-0 text-primary">
+                                    <i class="fas fa-sign-in-alt me-2"></i>
+                                    <%= lastLogin != null ? sdf.format(lastLogin) : "Never" %>
+                                </h6>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded bg-light">
+                                <small class="text-muted d-block">Last Logout</small>
+                                <h6 class="mb-0 text-danger">
+                                    <i class="fas fa-sign-out-alt me-2"></i>
+                                    <%= lastLogout != null ? sdf.format(lastLogout) : "Never" %>
+                                </h6>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="adminEmail" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="adminEmail" value="<%= userEmail %>" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label for="adminContact" class="form-label">Contact</label>
-                        <input type="text" class="form-control" id="adminContact" value="<%= contact %>" readonly>
-                    </div>
-                </form>
-            </div>
-        </div> -->
-    </div>
-<!-- </div> -->
+                    
+                    <h5 class="mb-3">Update Information</h5>
+                    <form action="../UpdateAdminProfileServlet" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" name="name" class="form-control" value="<%= userName %>" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contact Number</label>
+                            <input type="text" name="contact" class="form-control" value="<%= contact %>">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" value="<%= userEmail %>" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Save Changes</button>
+                    </form>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+                    <h5 class="mt-4 mb-3 text-danger"><i class="fas fa-key me-2"></i>Change Password</h5>
+                    <form action="../UpdateAdminProfileServlet" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" name="currentPassword" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" name="newPassword" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" name="confirmPassword" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-danger"><i class="fas fa-lock me-1"></i> Change Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    <% 
+        // Hiển thị thông báo (chỉ một lần)
+        if (alertIcon != null) {
+    %>
+        Swal.fire({
+            icon: '<%= alertIcon %>',
+            title: '<%= alertTitle %>',
+            text: '<%= alertMessage != null ? alertMessage : "" %>',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    <% } %>
+</script>

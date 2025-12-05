@@ -1,177 +1,150 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.sql.*" %>
+<%@ page import="dao.UserDAO, entity.User" %>
+<%@ page import="utils.LanguageHelper" %> 
+
 <%
-    String userName = (String) session.getAttribute("userName");
+    // Lấy thông tin người dùng từ DB (Logic này giữ nguyên)
     String userEmail = (String) session.getAttribute("userEmail");
-    if (userEmail == null) {
-        response.sendRedirect("login.jsp");
-        return;
+    if (userEmail == null) { response.sendRedirect("login.jsp"); return; }
+
+    UserDAO dao = new UserDAO();
+    User user = dao.getUserByEmail(userEmail);
+    if (user == null) { session.invalidate(); response.sendRedirect("login.jsp"); return; }
+    
+    // =========================================================
+    // LOGIC FLASH MESSAGE: Đọc và XÓA thông báo khỏi Session
+    // 1. LƯU: Lấy thông báo từ Session
+    String alertIcon = (String) session.getAttribute("alertIcon");
+    String alertTitle = (String) session.getAttribute("alertTitle");
+    String alertMessage = (String) session.getAttribute("alertMessage");
+
+    // 2. XÓA: Xóa các thuộc tính Session ngay lập tức sau khi lấy
+    if (alertIcon != null) {
+        session.removeAttribute("alertIcon");
+        session.removeAttribute("alertTitle");
+        session.removeAttribute("alertMessage");
     }
+    // =========================================================
 %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cài đặt tài khoản - E-Books</title>
+    <title><%= LanguageHelper.getText(request, "settings.account.title") %> - E-Books</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="CSS/style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
-        body { background: #f9f9f9; font-family: 'Open Sans', sans-serif; }
-        .settings-container {
-            max-width: 900px;
-            margin: 80px auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            padding: 30px;
-        }
-        .settings-title {
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: #ee4d2d;
-            margin-bottom: 25px;
-        }
-        .form-label { font-weight: 600; }
-        .btn-save {
-            background: linear-gradient(135deg, #ee4d2d 0%, #ff6d4d 100%);
-            color: white;
-            font-weight: 600;
-        }
-        .btn-save:hover {
-            opacity: 0.9;
-        }
-        body.dark-mode {
-    background-color: #121212 !important;
-    color: #e0e0e0 !important;
-  }
-
-  .settings-container.dark-mode {
-    background-color: #1e1e1e;
-    color: #ddd;
-    box-shadow: 0 4px 20px rgba(255,255,255,0.05);
-  }
-
-  .form-control.dark-mode {
-    background-color: #2c2c2c;
-    color: #fff;
-    border-color: #444;
-  }
-
-  .btn-save.dark-mode {
-    background: linear-gradient(135deg, #444 0%, #666 100%);
-    color: #fff;
-  }
+        .settings-container { max-width: 800px; margin: 40px auto; padding: 20px; background: #fff; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+        .form-section { margin-bottom: 30px; }
+        .section-title { font-weight: 600; color: #333; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
     </style>
 </head>
 <body>
-    <jsp:include page="header.jsp" /> <!-- Gọi header hiện tại -->
+    <jsp:include page="header.jsp" />
 
-    <div class="settings-container">
-        <h2 class="settings-title">Cài đặt tài khoản</h2>
+    <div class="container">
+        <div class="settings-container">
+            <h2 class="text-center mb-4"><i class="fas fa-cog text-primary"></i> <%= LanguageHelper.getText(request, "settings.account.title") %></h2>
 
-        <!-- Thông tin cá nhân -->
-        <form action="UpdateSettingsServlet" method="post">
-            <h5 class="mb-3">👤 Thông tin cá nhân</h5>
-            <div class="mb-3">
-                <label class="form-label">Họ và tên</label>
-                <input type="text" name="name" class="form-control" value="<%= userName %>" required>
-            </div>
+            <form action="UpdateSettingsServlet" method="post">
+                
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-user-circle me-2"></i><%= LanguageHelper.getText(request, "settings.personal.info") %></h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold"><%= LanguageHelper.getText(request, "user.fullname") %></label>
+                            <input type="text" name="name" class="form-control" 
+value="<%= user.getName() %>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Email</label>
+                            <input type="text" class="form-control bg-light" value="<%= user.getEmail() %>" readonly disabled>
+                            <small class="text-muted">Email <%= LanguageHelper.getText(request, "btn.edit") %> không thể thay đổi.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold"><%= LanguageHelper.getText(request, "user.phone.number") %></label>
+                            <input type="text" name="phone" class="form-control" value="<%= user.getContact() != null ? user.getContact() : "" %>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold"><%= LanguageHelper.getText(request, "user.gender") %></label>
+                            <select name="gender" class="form-select">
+                                <option value="Male" <%= "Male".equals(user.getGender()) ? "selected" : "" %>>Nam</option>
+                                <option value="Female" <%= "Female".equals(user.getGender()) ? "selected" : "" %>>Nữ</option>
+                                <option value="Other" <%= "Other".equals(user.getGender()) ? "selected" : "" %>>Khác</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="mb-3">
-                <label class="form-label">Email đăng nhập</label>
-                <input type="email" class="form-control" value="<%= userEmail %>" readonly>
-            </div>
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-lock me-2"></i><%= LanguageHelper.getText(request, "settings.security") %></h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label"><%= LanguageHelper.getText(request, "settings.current.password") %></label>
+                            <input type="password" name="currentPassword" class="form-control" placeholder="••••••">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label"><%= LanguageHelper.getText(request, "settings.new.password") %></label>
+                            <input type="password" name="newPassword" class="form-control" placeholder="<%= LanguageHelper.getText(request, "settings.new.password") %>">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label"><%= LanguageHelper.getText(request, "settings.confirm.new.password") %></label>
+                            <input type="password" name="confirmPassword" class="form-control" placeholder="<%= LanguageHelper.getText(request, "settings.confirm.new.password") %>">
+                        </div>
+                        <div class="col-12">
+                            <small class="text-muted fst-italic"><%= LanguageHelper.getText(request, "settings.password.hint") %></small>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="mb-3">
-                <label class="form-label">Số điện thoại</label>
-                <input type="text" name="phone" class="form-control" placeholder="Nhập số điện thoại">
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Địa chỉ</label>
-                <input type="text" name="address" class="form-control" placeholder="Nhập địa chỉ nhận sách">
-            </div>
-
-            <hr>
-
-            <!-- Đổi mật khẩu -->
-            <h5 class="mb-3">🔒 Bảo mật</h5>
-            <div class="mb-3">
-                <label class="form-label">Mật khẩu hiện tại</label>
-                <input type="password" name="currentPassword" class="form-control">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Mật khẩu mới</label>
-                <input type="password" name="newPassword" class="form-control">
-            </div>
-
-            <hr>
-
-            <!-- Tùy chọn hiển thị -->
-            <h5 class="mb-3">🎨 Giao diện & thông báo</h5>
-            <div class="form-check form-switch mb-2">
-                <input class="form-check-input" type="checkbox" id="darkMode" name="darkMode">
-                <label class="form-check-label" for="darkMode">Bật chế độ tối (Dark Mode)</label>
-            </div>
-            <div class="form-check form-switch mb-4">
-                <input class="form-check-input" type="checkbox" id="emailNotify" name="emailNotify" checked>
-                <label class="form-check-label" for="emailNotify">Nhận thông báo qua email</label>
-            </div>
-
-            <button type="submit" class="btn btn-save">Lưu thay đổi</button>
-        </form>
-
-        <hr class="my-4">
-
-        <!-- Xóa tài khoản -->
-        <div>
-            <h5 class="text-danger mb-3">⚠️ Xóa tài khoản</h5>
-            <p class="text-muted">Hành động này không thể hoàn tác. Toàn bộ dữ liệu sẽ bị xóa vĩnh viễn.</p>
-            <form action="DeleteAccountServlet" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài khoản không?');">
-                <button class="btn btn-danger">Xóa tài khoản</button>
+                <div class="text-end mt-4">
+                    <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i><%= LanguageHelper.getText(request, "btn.save.changes") %></button>
+                </div>
             </form>
+
+            <hr class="my-5">
+
+            <div class="bg-light p-4 rounded border border-danger border-opacity-25">
+                <h5 class="text-danger mb-3"><i class="fas fa-exclamation-triangle me-2"></i><%= LanguageHelper.getText(request, "settings.danger.zone") %></h5>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <p class="mb-0 fw-bold"><%= LanguageHelper.getText(request, "settings.delete.account") %></p>
+                        <small class="text-muted"><%= LanguageHelper.getText(request, "settings.delete.warning") %></small>
+                    </div>
+                    <form action="DeleteAccountServlet" method="post">
+                        <button type="button" class="btn btn-outline-danger" onclick="confirmDelete(this.form)">
+                            <%= LanguageHelper.getText(request, "btn.delete") %> <%= LanguageHelper.getText(request, "menu.account") %>
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
+    
+    <jsp:include page="footer.jsp" />
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function confirmDelete(form) {
+            Swal.fire({
+                title: 'Bạn có chắc chắn?',
+                text: "Tài khoản sẽ bị xóa vĩnh viễn và không thể khôi phục!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Xóa ngay',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        }
+    </script>
 </body>
 </html>
-
-<script>
-  const toggle = document.getElementById('darkMode');
-  const body = document.body;
-  const container = document.querySelector('.settings-container');
-  const inputs = document.querySelectorAll('.form-control');
-  const btnSave = document.querySelector('.btn-save');
-
-  // Kiểm tra xem người dùng đã bật dark mode từ trước chưa
-  if (localStorage.getItem('darkMode') === 'true') {
-    toggle.checked = true;
-    enableDarkMode();
-  }
-
-  // Khi người dùng thay đổi switch
-  toggle.addEventListener('change', () => {
-    if (toggle.checked) {
-      enableDarkMode();
-      localStorage.setItem('darkMode', 'true');
-    } else {
-      disableDarkMode();
-      localStorage.setItem('darkMode', 'false');
-    }
-  });
-
-  function enableDarkMode() {
-    body.classList.add('dark-mode');
-    container.classList.add('dark-mode');
-    btnSave.classList.add('dark-mode');
-    inputs.forEach(i => i.classList.add('dark-mode'));
-  }
-
-  function disableDarkMode() {
-    body.classList.remove('dark-mode');
-    container.classList.remove('dark-mode');
-    btnSave.classList.remove('dark-mode');
-    inputs.forEach(i => i.classList.remove('dark-mode'));
-  }
-</script>

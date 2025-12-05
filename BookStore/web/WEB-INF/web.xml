@@ -1,239 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app
-        version="5.0"
-        xmlns="https://jakarta.ee/xml/ns/jakartaee"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
-                            https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd">
-
+<web-app version="6.0" 
+         xmlns="https://jakarta.ee/xml/ns/jakartaee" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd">
+    
     <display-name>BookStore</display-name>
-
-    <!-- Trang mặc định -->
+    
+    <!-- 1. Cấu hình trang mặc định -->
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
-
-    <!-- Các servlet được khai báo trong web.xml -->
-    <servlet>
-        <servlet-name>SignupServlet</servlet-name>
-        <servlet-class>SignupServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>LoginServlet</servlet-name>
-        <servlet-class>LoginServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>LogoutServlet</servlet-name>
-        <servlet-class>LogoutServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>AdminLogoutServlet</servlet-name>
-        <servlet-class>AdminLogoutServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>PublisherLoginServlet</servlet-name>
-        <servlet-class>PublisherLoginServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>PublisherLogoutServlet</servlet-name>
-        <servlet-class>PublisherLogoutServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>AddBookServlet</servlet-name>
-        <servlet-class>AddBookServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>AddCategoryServlet</servlet-name>
-        <servlet-class>AddCategoryServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>EditCategoryServlet</servlet-name>
-        <servlet-class>EditCategoryServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>DeleteCategoryServlet</servlet-name>
-        <servlet-class>DeleteCategoryServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>DeleteBookServlet</servlet-name>
-        <servlet-class>DeleteBookServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>EditBookServlet</servlet-name>
-        <servlet-class>EditBookServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>AddToCartServlet</servlet-name>
-        <servlet-class>AddToCartServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>UpdateCartServlet</servlet-name>
-        <servlet-class>UpdateCartServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>RemoveFromCartServlet</servlet-name>
-        <servlet-class>RemoveFromCartServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>SubscribeServlet</servlet-name>
-        <servlet-class>SubscribeServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>ContactServlet</servlet-name>
-        <servlet-class>ContactServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>SendNewsletterServlet</servlet-name>
-        <servlet-class>SendNewsletterServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>DeleteSubscriberServlet</servlet-name>
-        <servlet-class>DeleteSubscriberServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>ReplyContactMessageServlet</servlet-name>
-        <servlet-class>ReplyContactMessageServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>ProcessOrderServlet</servlet-name>
-        <servlet-class>ProcessOrderServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>UpdateOrderStatusServlet</servlet-name>
-        <servlet-class>UpdateOrderStatusServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>SendOrderConfirmationServlet</servlet-name>
-        <servlet-class>SendOrderConfirmationServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>DeleteContactMessageServlet</servlet-name>
-        <servlet-class>DeleteContactMessageServlet</servlet-class>
-    </servlet>
-
-    <!-- ⚠️ KHÔNG cần khai báo CancelOrderServlet ở đây vì đã có annotation -->
-    <!-- Nếu bạn muốn khai báo ở đây, hãy xóa @WebServlet trong file Java -->
-
-    <servlet>
-        <servlet-name>DeleteOrderServlet</servlet-name>
-        <servlet-class>DeleteOrderServlet</servlet-class>
-    </servlet>
-
-    <!-- Các servlet mapping -->
-    <servlet-mapping>
-        <servlet-name>SignupServlet</servlet-name>
-        <url-pattern>/SignupServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>LoginServlet</servlet-name>
-        <url-pattern>/LoginServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>LogoutServlet</servlet-name>
-        <url-pattern>/LogoutServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>AdminLogoutServlet</servlet-name>
-        <url-pattern>/AdminLogoutServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>PublisherLoginServlet</servlet-name>
-        <url-pattern>/PublisherLoginServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>PublisherLogoutServlet</servlet-name>
-        <url-pattern>/PublisherLogoutServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>AddBookServlet</servlet-name>
-        <url-pattern>/AddBookServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>AddCategoryServlet</servlet-name>
-        <url-pattern>/AddCategoryServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>EditCategoryServlet</servlet-name>
-        <url-pattern>/EditCategoryServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>DeleteCategoryServlet</servlet-name>
-        <url-pattern>/DeleteCategoryServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>DeleteBookServlet</servlet-name>
-        <url-pattern>/DeleteBookServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>EditBookServlet</servlet-name>
-        <url-pattern>/EditBookServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>AddToCartServlet</servlet-name>
-        <url-pattern>/AddToCartServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>UpdateCartServlet</servlet-name>
-        <url-pattern>/UpdateCartServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>RemoveFromCartServlet</servlet-name>
-        <url-pattern>/RemoveFromCartServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>SubscribeServlet</servlet-name>
-        <url-pattern>/SubscribeServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>ContactServlet</servlet-name>
-        <url-pattern>/ContactServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>SendNewsletterServlet</servlet-name>
-        <url-pattern>/SendNewsletterServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>DeleteSubscriberServlet</servlet-name>
-        <url-pattern>/DeleteSubscriberServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>ReplyContactMessageServlet</servlet-name>
-        <url-pattern>/ReplyContactMessageServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>ProcessOrderServlet</servlet-name>
-        <url-pattern>/ProcessOrderServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>UpdateOrderStatusServlet</servlet-name>
-        <url-pattern>/UpdateOrderStatusServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>SendOrderConfirmationServlet</servlet-name>
-        <url-pattern>/SendOrderConfirmationServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>DeleteContactMessageServlet</servlet-name>
-        <url-pattern>/DeleteContactMessageServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>DeleteOrderServlet</servlet-name>
-        <url-pattern>/DeleteOrderServlet</url-pattern>
-    </servlet-mapping>
-
-    <!-- Cấu hình Session -->
+    
+    <!-- 2. Cấu hình Session Timeout (30 phút) -->
     <session-config>
         <session-timeout>30</session-timeout>
+        <!-- Các cấu hình cookie session bảo mật (Optional) -->
+        <cookie-config>
+            <http-only>true</http-only>
+            <!-- <secure>true</secure> --> <!-- Bật cái này nếu chạy trên HTTPS -->
+        </cookie-config>
     </session-config>
-
-    <!-- Trang lỗi -->
+    
+    <!-- 3. Cấu hình trang lỗi tùy chỉnh -->
+    <!-- Lỗi 404: Không tìm thấy trang -->
     <error-page>
         <error-code>404</error-code>
         <location>/error.jsp</location>
     </error-page>
+    
+    <!-- Lỗi 500: Lỗi Server nội bộ (Java Exception) -->
     <error-page>
         <error-code>500</error-code>
         <location>/error.jsp</location>
     </error-page>
+    
+    <!-- Lỗi 403: Không có quyền truy cập -->
+    <error-page>
+        <error-code>403</error-code>
+        <location>/error.jsp</location>
+    </error-page>
+
+    <!-- 4. (Optional) Cấu hình MIME type cho các file tĩnh nếu cần thiết -->
+    <mime-mapping>
+        <extension>json</extension>
+        <mime-type>application/json</mime-type>
+    </mime-mapping>
 
 </web-app>

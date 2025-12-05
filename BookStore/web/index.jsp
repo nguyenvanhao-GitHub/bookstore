@@ -1,8 +1,38 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.sql.*" %>
-<%@ page import="java.text.NumberFormat" %>
-<%@ page import="java.util.Locale" %>
+<%@ page import="java.text.NumberFormat, java.util.Locale, java.util.List" %>
 <%@ page import="utils.LanguageHelper" %>
+<%@ page import="dao.BookDAO" %>
+<%@ page import="entity.Book" %>
+
+<%
+    // Phân trang
+    int pageSize = 8; // Số sách trên mỗi trang
+    int currentPage = 1;
+    
+    String pageParam = request.getParameter("page");
+    if (pageParam != null && !pageParam.isEmpty()) {
+        try {
+            currentPage = Integer.parseInt(pageParam);
+            if (currentPage < 1) currentPage = 1;
+        } catch (NumberFormatException e) {
+            currentPage = 1;
+        }
+    }
+    
+    BookDAO bookDAO = new BookDAO();
+    int totalBooks = bookDAO.getTotalFeaturedBooks();
+    int totalPages = (int) Math.ceil((double) totalBooks / pageSize);
+    
+    // Đảm bảo trang hiện tại không vượt quá tổng số trang
+    if (currentPage > totalPages && totalPages > 0) {
+        currentPage = totalPages;
+    }
+    
+    List<Book> featuredBooks = bookDAO.getFeaturedBooks(currentPage, pageSize);
+    
+    Locale localeVN = new Locale("vi", "VN");
+    NumberFormat currencyVN = NumberFormat.getCurrencyInstance(localeVN);
+%>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -16,14 +46,90 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
+    <style>
+        /* Pagination Styles */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+            gap: 10px;
+        }
+        
+        .pagination {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .pagination .page-item {
+            display: inline-block;
+        }
+        
+        .pagination .page-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            padding: 8px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            color: #374151;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .pagination .page-link:hover {
+            background: #f3f4f6;
+            border-color: #2563eb;
+            color: #2563eb;
+            transform: translateY(-2px);
+        }
+        
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+            border-color: #2563eb;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+        }
+        
+        .pagination .page-item.disabled .page-link {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        .page-info {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 0 15px;
+        }
+        
+        @media (max-width: 576px) {
+            .pagination .page-link {
+                min-width: 35px;
+                height: 35px;
+                padding: 6px 10px;
+                font-size: 14px;
+            }
+            
+            .page-info {
+                font-size: 12px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-<!-- Include Header -->
 <jsp:include page="header.jsp" />
 
 <main class="main-content">
-    <!-- Hero Section with Slideshow -->
+    <!-- Hero Section -->
     <section class="hero-section">
         <div class="slideshow-container">
             <div class="slides fade active">
@@ -55,7 +161,6 @@
                 </div>
             </div>
 
-            <!-- Navigation Arrows -->
             <button class="prev" onclick="changeSlide(-1)" aria-label="Previous slide">
                 <i class="fas fa-chevron-left"></i>
             </button>
@@ -63,7 +168,6 @@
                 <i class="fas fa-chevron-right"></i>
             </button>
 
-            <!-- Dots Navigation -->
             <div class="dots-container">
                 <span class="dot active" onclick="currentSlide(1)" aria-label="Slide 1"></span>
                 <span class="dot" onclick="currentSlide(2)" aria-label="Slide 2"></span>
@@ -77,65 +181,133 @@
     <section id="Featuredbooks" class="new-books-section">
         <div class="container">
             <h2 class="section-title"><%= LanguageHelper.getText(request, "featured.books.title") %></h2>
+            
             <div class="row">
                 <%
-                    try {
-                        Class.forName("com.mysql.cj.jdbc.Driver");
-                        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bookstore", "root", "");
-                        PreparedStatement ps = conn.prepareStatement("SELECT * FROM books LIMIT 20");
-                        ResultSet rs = ps.executeQuery();
-
-                        Locale localeVN = new Locale("vi", "VN");
-                        NumberFormat currencyVN = NumberFormat.getCurrencyInstance(localeVN);
-
-                        while (rs.next()) {
-                            double priceInRupees = rs.getDouble("price");
-                            double priceInVND = priceInRupees * 300;
-                            String formattedPrice = currencyVN.format(priceInVND);
+                    if (featuredBooks.isEmpty()) {
+                %>
+                    <div class='col-12'>
+                        <div class='alert alert-info text-center'>
+                            <i class='fas fa-info-circle'></i> Đang cập nhật sách...
+                        </div>
+                    </div>
+                <%
+                    } else {
+                        for (Book b : featuredBooks) {
+                            double priceVND = b.getPrice() * 300;
+                            String formattedPrice = currencyVN.format(priceVND);
                 %>
                 <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
                     <div class="book-card">
                         <div class="book-image-container">
-                            <img src="<%= rs.getString("image") %>" alt="<%= rs.getString("name") %>">
+                            <img src="<%= b.getImage() %>" alt="<%= b.getName() %>" onerror="this.src='images/default-book.jpg'">
                             <div class="book-overlay">
-                                <a class="btn quick-view" href="book-detail.jsp?id=<%= rs.getInt("id") %>">
+                                <a class="btn quick-view" href="book-detail.jsp?id=<%= b.getId() %>">
                                     <%= LanguageHelper.getText(request, "book.view.books") %>
                                 </a>
                             </div>
                         </div>
                         <div class="book-info">
-                            <h3><%= rs.getString("name") %></h3>
+                            <h3><%= b.getName() %></h3>
                             <p class="book-author">
                                 <i class="fas fa-pen-fancy"></i>
-                                <%= rs.getString("author") %>
+                                <%= b.getAuthor() %>
                             </p>
                             <div class="price"><%= formattedPrice %></div>
-                            <div class="category-tag"><%= rs.getString("category") %></div>
+                            <div class="category-tag"><%= b.getCategory() %></div>
                         </div>
                     </div>
                 </div>
-                <%
-                        }
-                        rs.close();
-                        ps.close();
-                        conn.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        out.println("<div class='col-12'><div class='alert alert-danger'>Error loading books: " + e.getMessage() + "</div></div>");
+                <%      }
                     }
                 %>
             </div>
+
+            <!-- Pagination -->
+            <% if (totalPages > 1) { %>
+            <div class="pagination-container">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        <!-- Previous Button -->
+                        <li class="page-item <%= currentPage == 1 ? "disabled" : "" %>">
+                            <a class="page-link" href="?page=<%= currentPage - 1 %>#Featuredbooks" aria-label="Previous">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+
+                        <%
+                            int startPage = Math.max(1, currentPage - 2);
+                            int endPage = Math.min(totalPages, currentPage + 2);
+                            
+                            // Hiển thị trang đầu
+                            if (startPage > 1) {
+                        %>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1#Featuredbooks">1</a>
+                            </li>
+                            <% if (startPage > 2) { %>
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            <% } %>
+                        <% } %>
+
+                        <!-- Các trang ở giữa -->
+                        <% for (int i = startPage; i <= endPage; i++) { %>
+                            <li class="page-item <%= i == currentPage ? "active" : "" %>">
+                                <a class="page-link" href="?page=<%= i %>#Featuredbooks"><%= i %></a>
+                            </li>
+                        <% } %>
+
+                        <!-- Hiển thị trang cuối -->
+                        <% if (endPage < totalPages) { %>
+                            <% if (endPage < totalPages - 1) { %>
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            <% } %>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=<%= totalPages %>#Featuredbooks"><%= totalPages %></a>
+                            </li>
+                        <% } %>
+
+                        <!-- Next Button -->
+                        <li class="page-item <%= currentPage == totalPages ? "disabled" : "" %>">
+                            <a class="page-link" href="?page=<%= currentPage + 1 %>#Featuredbooks" aria-label="Next">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                
+                <div class="page-info">
+                    Trang <%= currentPage %> / <%= totalPages %> (Tổng <%= totalBooks %> sách)
+                </div>
+            </div>
+            <% } %>
         </div>
     </section>
 </main>
 
-<!-- Include Footer -->
 <jsp:include page="footer.jsp" />
 
-<!-- JavaScript Dependencies -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="Js/search.js"></script>
 <script src="Js/slideshow.js"></script>
+
+<script>
+    // Smooth scroll to books section when clicking pagination
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.location.hash === '#Featuredbooks') {
+            setTimeout(function() {
+                document.getElementById('Featuredbooks').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 100);
+        }
+    });
+</script>
 
 </body>
 </html>

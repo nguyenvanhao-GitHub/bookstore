@@ -2,9 +2,14 @@ package utils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.text.NumberFormat;
+import java.util.PropertyResourceBundle;
 
 /**
  * LanguageHelper - Utility class để xử lý đa ngôn ngữ
@@ -34,6 +39,29 @@ public class LanguageHelper {
         return lang;
     }
     
+    public static ResourceBundle getBundleUTF8(String baseName) {
+    ResourceBundle.Control utf8Control = new ResourceBundle.Control() {
+        @Override
+        public ResourceBundle newBundle(String baseName, Locale locale, String format,
+                ClassLoader loader, boolean reload)
+                throws IllegalAccessException, InstantiationException, IOException {
+
+            String bundleName = toBundleName(baseName, locale);
+            String resourceName = toResourceName(bundleName, "properties");
+            InputStream stream = loader.getResourceAsStream(resourceName);
+
+            if (stream != null) {
+                try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+                    return new PropertyResourceBundle(reader);
+                }
+            }
+            return super.newBundle(baseName, locale, format, loader, reload);
+        }
+    };
+
+    return ResourceBundle.getBundle(baseName, utf8Control);
+}
+
     /**
      * Set ngôn ngữ vào session
      * @param request HttpServletRequest

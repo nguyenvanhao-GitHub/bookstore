@@ -29,6 +29,7 @@
 
     /* Transition */
     --transition: all 0.3s ease;
+    --heading-font: 'Open Sans', sans-serif;
 }
 
 /* ===== BASE NAVBAR ===== */
@@ -63,34 +64,36 @@
 }
 
 /* ===== LOGO ===== */
-.brand-logo {
+.brand-logo, .navbar-brand {
+    font-family: var(--heading-font);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    padding: 0;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     text-decoration: none;
-    color: var(--primary-color);
-    font-size: 1.5rem;
-    font-weight: 700;
-    flex-shrink: 0;
     transition: var(--transition);
-    min-width: fit-content;
 }
-
-.brand-logo:hover {
-    color: var(--primary-hover);
-    transform: translateY(-2px);
+.brand-logo:hover, .navbar-brand:hover {
+    transform: translateY(-3px);
+    color: var(--primary-color);
 }
-
-.brand-logo i {
-    font-size: 1.8rem;
+.brand-logo i, .navbar-brand i {
+    color: var(--accent-color);
+    transition: transform 0.3s ease;
 }
-
-.brand-logo span {
-    color: #222;
+.brand-logo:hover i, .navbar-brand:hover i {
+    transform: rotate(15deg);
+}
+.brand-logo span, .navbar-brand span {
+    color: var(--primary-color);
     letter-spacing: 0.2px;
     white-space: nowrap;
 }
 
+/* ===== NAVIGATION LINKS (Desktop) ===== */
 /* ===== NAVIGATION LINKS (Desktop) ===== */
 .nav-links {
     display: flex;
@@ -99,23 +102,26 @@
     margin: 0;
     padding: 0;
     flex-wrap: nowrap;
-    color:  #333652;
+    color: #333652;
 }
 
 .nav-links li a {
-    position: relative; /* Quan trọng cho pseudo-element */
+    position: relative;
     display: block;
     padding: 10px 22px;
     text-decoration: none;
-    font-family: 'Open Sans', sans-serif;
-    font-weight: 500;
+    /* CẬP NHẬT: Đồng bộ font và làm đậm hơn */
+    font-family: 'Inter', sans-serif; /* <-- Đã đổi sang Inter */
+    font-weight: 600; /* <-- Đã đổi sang 600 (Semi-bold) */
+    /* KẾT THÚC CẬP NHẬT */
     font-size: 1rem;
     letter-spacing: 0.3px;
     border-radius: 6px;
     transition: all 0.2s ease;
     white-space: nowrap;
-    color:  var(--text-color);
+    color: var(--text-color);
 }
+/* ... (Giữ nguyên phần còn lại của .nav-links li a::after) ... */
 
 /* Hiệu ứng gạch chân động */
 .nav-links li a::after {
@@ -189,51 +195,6 @@
     margin-right: 4px;
 }
 
-.search-wrapper {
-    display: flex;
-    align-items: center;
-    background: var(--bg-light);
-    border: 2px solid var(--border-color);
-    border-radius: 24px;
-    padding: 0 6px 0 18px;
-    transition: var(--transition);
-    height: 44px;
-}
-
-.search-wrapper:focus-within {
-    border-color: var(--primary-color);
-    background: var(--bg-white);
-    box-shadow: var(--shadow-sm); /* Sử dụng shadow đã định */
-}
-
-.search-input {
-    border: none;
-    outline: none;
-    background: transparent;
-    padding: 0 12px;
-    font-size: 0.9rem;
-    color: var(--text-color);
-    width: 100%;
-    min-width: 180px;
-}
-
-.search-input::placeholder {
-    color: #999;
-}
-
-.search-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: var(--primary-color);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: var(--transition);
-    flex-shrink: 0;
-}
 
 .search-icon:hover {
     background: var(--primary-hover);
@@ -454,10 +415,10 @@
 
 /* Badge */
 .badge {
-    position: absolute;
+     position: absolute;
     top: -4px;
     right: -4px;
-    background: var(--primary-color);
+    background: #f44336; /* Màu đỏ Material Design */
     color: white;
     min-width: 20px;
     height: 20px;
@@ -468,6 +429,8 @@
     align-items: center;
     justify-content: center;
     border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(244, 67, 54, 0.4);
+    transition: all 0.3s ease;
 }
 
 /* User Avatar */
@@ -700,76 +663,207 @@
 }
 
 /* User Dropdown */
-.user-dropdown {
-    width: 260px;
-    max-width: calc(100vw - 24px);
+/* ===== USER DROPDOWN - FIXED ===== */
+
+/* Container dropdown */
+.user-dropdown-wrapper {
+    position: relative;
 }
 
+/* 2. User button */
+.user-btn {
+    position: relative;
+}
+
+/* 3. User avatar */
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.user-avatar.large {
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
+}
+
+/* 4. Dropdown container */
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 300px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1001;
+    overflow: hidden;
+}
+
+/* 5. Show dropdown on hover */
+.user-dropdown-wrapper:hover .user-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* 6. Arrow indicator */
+.user-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 16px;
+    width: 12px;
+    height: 12px;
+    background: white;
+    transform: rotate(45deg);
+    box-shadow: -2px -2px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* 7. User Info Section */
 .user-info {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 16px;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 20px 16px;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    border-radius: 12px 12px 0 0;
+}
+
+.user-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-info .user-avatar {
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
 }
 
 .user-name {
     font-weight: 600;
-    color: var(--text-color);
-    font-size: 0.95rem;
+    font-size: 1rem;
+    color: white;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .user-email {
     font-size: 0.8rem;
-    color: #888;
-    margin-top: 2px;
-    word-break: break-all;
+    color: rgba(255, 255, 255, 0.9);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.dropdown-menu {
+/* 8. Menu List Container */
+.user-menu-list {
     padding: 8px 0;
+    background: white;
 }
 
+/* 9. Menu Items */
 .dropdown-item {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 12px 20px;
-    color: var(--text-color);
-    text-decoration: none;
-    transition: all 0.2s;
-    font-size: 0.9rem;
+    width: 100%;
     border: none;
     background: none;
-    width: 100%;
+    color: #333;
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
     text-align: left;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .dropdown-item:hover {
     background: #fef6f5;
     color: var(--primary-color);
-    padding-left: 25px;
+    padding-left: 24px;
 }
 
 .dropdown-item i {
     width: 20px;
     text-align: center;
+    font-size: 1rem;
+    color: inherit;
+    flex-shrink: 0;
 }
 
+.dropdown-item span {
+    flex: 1;
+}
+
+/* 10. Divider */
 .dropdown-divider {
     height: 1px;
-    background: #f0f0f0;
+    background: #e8e8e8;
     margin: 8px 0;
+    border: none;
 }
 
-.dropdown-item.logout {
+/* 11. Logout Button Special Style */
+.logout-btn {
     color: #f44336;
 }
 
-.dropdown-item.logout:hover {
+.logout-btn:hover {
     background: #ffebee;
-    color: #f44336;
+    color: #c62828;
+}
+
+.logout-btn i {
+    color: inherit;
+}
+
+/* 12. Logout Form */
+.logout-form {
+    margin: 0;
+    padding: 0;
+}
+
+/* 13. Mobile Responsive */
+@media (max-width: 991px) {
+    .user-dropdown {
+        position: fixed !important;
+        top: calc(var(--header-mobile) + 56px) !important;
+        right: 12px !important;
+        left: auto !important;
+        width: calc(100% - 24px);
+        max-width: 320px;
+    }
+    
+    .user-dropdown::before {
+        display: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .user-dropdown {
+        max-width: 100%;
+        right: 12px;
+        left: 12px;
+    }
 }
 
 /* ===== MOBILE MENU BUTTON ===== */
@@ -1108,6 +1202,7 @@
     .action-btn {
         width: 40px;
         height: 40px;
+        color: red;
     }
 
     .action-btn i {

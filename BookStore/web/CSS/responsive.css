@@ -1309,3 +1309,95 @@
     }
 }
 
+/* Mặc định ẩn nút toggle trên máy tính */
+.mobile-menu-toggle, .mobile-sidebar, .mobile-overlay {
+    display: none;
+}
+
+/* Chỉ hiện trên màn hình nhỏ (Mobile/Tablet) */
+@media (max-width: 991px) {
+    /* 1. Hiện nút mở menu */
+    .mobile-menu-toggle {
+        display: inline-block;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 10px;
+        color: #333; /* Đổi màu tùy ý */
+    }
+
+    /* 2. Style cho Sidebar trượt ra */
+    .mobile-sidebar {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: -300px; /* Giấu sang bên trái */
+        width: 280px;
+        height: 100vh;
+        background: #fff;
+        z-index: 9999;
+        transition: all 0.3s ease;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        padding: 20px;
+    }
+
+    /* Class này sẽ được JS thêm vào để hiện menu */
+    .mobile-sidebar.active {
+        left: 0;
+    }
+
+    /* 3. Style nút đóng và header */
+    .sidebar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+    }
+
+    .close-btn {
+        font-size: 30px;
+        cursor: pointer;
+        color: #ff0000;
+    }
+
+    /* 4. Style danh sách category bên trong */
+    .mobile-cat-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .mobile-cat-list li {
+        margin-bottom: 10px;
+    }
+
+    .mobile-cat-item {
+        display: block;
+        padding: 10px;
+        color: #333;
+        text-decoration: none;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+    }
+
+    .mobile-cat-item:hover {
+        background-color: #e9ecef;
+        color: #007bff;
+    }
+
+    /* 5. Lớp phủ mờ nền đen */
+    .mobile-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 9998;
+        display: none; /* Mặc định ẩn */
+    }
+    
+    .mobile-overlay.active {
+        display: block;
+    }
+}
