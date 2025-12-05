@@ -1,18 +1,46 @@
-MyWebProject/                   
-│── src/                        # Java source files
-│── web/                        # Web application root directory
-│   ├── index.jsp               # Main JSP file
-│   ├── css/                    # CSS files
-│   │   ├── style.css           # Main CSS file
-│   ├── js/                     # JavaScript files
-│   │   ├── script.js           # Custom JavaScript file
-│   ├── images/                 # Images and icons
-│   ├── WEB-INF/                # Web Application Configuration
-│   │   ├── web.xml             # Deployment Descriptor
-│   │   ├── lib/                # External JAR Libraries
-│── build.xml                   # Ant build script
-│── nbproject/                  # NetBeans-specific files
-│── dist/                       # Generated WAR file
-
-<link rel="stylesheet" type="text/css" href="css/style.css">
-<script src="js/script.js"></script>
+Bookstore-JspServlet/
+│
+├── JARS/                           # Thư viện phụ thuộc (External Libraries)
+│   ├── commons-lang3-3.13.0.jar
+│   ├── gson-2.10.1.jar
+│   ├── jakarta.activation-2.0.1.jar
+│   ├── jakarta.mail-2.0.1.jar
+│   ├── jakarta.mail-api-2.0.1.jar
+│   ├── json-20210307.jar
+│   └── mysql-connector-j-9.1.0.jar
+│
+└── BookStore/                      # Thư mục chính của dự án (NetBeans Project)
+    │
+    ├── src/java/                   # Java Source Code (Backend)
+    │   ├── config/                 # Cấu hình hệ thống (VNPayConfig...)
+    │   ├── context/                # Kết nối Database (DBContext)
+    │   ├── controller/             # Servlets xử lý logic (MVC Controllers)
+    │   ├── dao/                    # Data Access Objects (Truy vấn DB)
+    │   ├── entity/                 # Data Models (POJO Classes)
+    │   ├── resources/              # File đa ngôn ngữ (messages_vi/en.properties)
+    │   └── utils/                  # Tiện ích (Email, Password Hash, Language...)
+    │
+    ├── web/                        # Web Root (Frontend)
+    │   │
+    │   ├── admin/                  # Module dành cho Admin
+    │   │   ├── css/                # CSS riêng cho trang Admin
+    │   │   ├── js/                 # JS riêng cho trang Admin
+    │   │   └── *.jsp               # Các trang giao diện Admin
+    │   │
+    │   ├── publisher/              # Module dành cho Nhà xuất bản
+    │   │   ├── css/                # CSS riêng cho Publisher
+    │   │   ├── js/                 # JS riêng cho Publisher
+    │   │   └── *.jsp               # Các trang giao diện Publisher
+    │   │
+    │   ├── CSS/                    # CSS chung cho User (Customer)
+    │   ├── Js/                     # JS chung cho User
+    │   ├── images/                 # Hình ảnh (Sách, Banner, Avatar...)
+    │   │
+    │   ├── META-INF/               # Cấu hình Context (Database Resource)
+    │   ├── WEB-INF/                # Cấu hình Web App
+    │   │   └── web.xml             # Deployment Descriptor
+    │   │
+    │   └── *.jsp                   # Các trang công khai (Home, Login, Cart...)
+    │
+    ├── nbproject/                  # Cấu hình dự án của NetBeans
+    └── build.xml                   # Ant Build Script
