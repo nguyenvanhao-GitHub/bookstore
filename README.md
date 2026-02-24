@@ -66,54 +66,6 @@ Nền tảng thương mại điện tử chuyên về sách kỹ thuật số, �
 3. Nhấn **Run** để deploy lên Tomcat.
 4. Truy cập: `http://localhost:8080/BookStore`
 
-## 📂 Cấu Trúc Dự Án
-Bookstore-JspServlet/
-│
-├── JARS/                           # Thư viện phụ thuộc (External Libraries)
-│   ├── commons-lang3-3.13.0.jar
-│   ├── gson-2.10.1.jar
-│   ├── jakarta.activation-2.0.1.jar
-│   ├── jakarta.mail-2.0.1.jar
-│   ├── jakarta.mail-api-2.0.1.jar
-│   ├── json-20210307.jar
-│   └── mysql-connector-j-9.1.0.jar
-│
-└── BookStore/                      # Thư mục chính của dự án (NetBeans Project)
-    │
-    ├── src/java/                   # Java Source Code (Backend)
-    │   ├── config/                 # Cấu hình hệ thống (VNPayConfig...)
-    │   ├── context/                # Kết nối Database (DBContext)
-    │   ├── controller/             # Servlets xử lý logic (MVC Controllers)
-    │   ├── dao/                    # Data Access Objects (Truy vấn DB)
-    │   ├── entity/                 # Data Models (POJO Classes)
-    │   ├── resources/              # File đa ngôn ngữ (messages_vi/en.properties)
-    │   └── utils/                  # Tiện ích (Email, Password Hash, Language...)
-    │
-    ├── web/                        # Web Root (Frontend)
-    │   │
-    │   ├── admin/                  # Module dành cho Admin
-    │   │   ├── css/                # CSS riêng cho trang Admin
-    │   │   ├── js/                 # JS riêng cho trang Admin
-    │   │   └── *.jsp               # Các trang giao diện Admin
-    │   │
-    │   ├── publisher/              # Module dành cho Nhà xuất bản
-    │   │   ├── css/                # CSS riêng cho Publisher
-    │   │   ├── js/                 # JS riêng cho Publisher
-    │   │   └── *.jsp               # Các trang giao diện Publisher
-    │   │
-    │   ├── CSS/                    # CSS chung cho User (Customer)
-    │   ├── Js/                     # JS chung cho User
-    │   ├── images/                 # Hình ảnh (Sách, Banner, Avatar...)
-    │   │
-    │   ├── META-INF/               # Cấu hình Context (Database Resource)
-    │   ├── WEB-INF/                # Cấu hình Web App
-    │   │   └── web.xml             # Deployment Descriptor
-    │   │
-    │   └── *.jsp                   # Các trang công khai (Home, Login, Cart...)
-    │
-    ├── nbproject/                  # Cấu hình dự án của NetBeans
-    └── build.xml                   # Ant Build Script
-
 ## 🤝 Đóng Góp
 Mọi ý kiến đóng góp xin vui lòng gửi Pull Request hoặc tạo Issue trên GitHub.
 
