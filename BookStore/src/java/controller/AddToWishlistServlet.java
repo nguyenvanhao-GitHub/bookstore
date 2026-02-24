@@ -16,8 +16,6 @@ public class AddToWishlistServlet extends HttpServlet {
         
         response.setContentType("application/json;charset=UTF-8");
         
-        // Lấy userId từ Session (Giả sử bạn lưu userId là Integer)
-        // Nếu bạn lưu User object thì: User user = (User) session.getAttribute("user"); int userId = user.getId();
         Object userIdObj = request.getSession().getAttribute("userId");
         
         if (userIdObj == null) {

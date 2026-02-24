@@ -1,7 +1,11 @@
 package dao;
 
 import context.DBContext;
+import entity.ContactMessage;
+import entity.Subscriber;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SubscriberDAO {
 
@@ -29,16 +33,15 @@ public class SubscriberDAO {
         return false;
     }
 
-    // Sửa hàm getAllSubscribers
-    public java.util.List<entity.Subscriber> getAllSubscribersList() {
-        java.util.List<entity.Subscriber> list = new java.util.ArrayList<>();
+    public List<Subscriber> getAllSubscribersList() {
+        List<Subscriber> list = new ArrayList<>();
         String sql = "SELECT id, email, subscribed_at FROM subscriber ORDER BY subscribed_at DESC";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                entity.Subscriber sub = new entity.Subscriber();
+                Subscriber sub = new Subscriber();
                 sub.setId(rs.getInt("id"));
                 sub.setEmail(rs.getString("email"));
-                sub.setSubscribedAt(rs.getTimestamp("subscribed_at")); // MỚI
+                sub.setSubscribedAt(rs.getTimestamp("subscribed_at")); 
                 list.add(sub);
             }
         } catch (Exception e) {
@@ -58,8 +61,8 @@ public class SubscriberDAO {
         return 0;
     }
 
-    public java.util.List<entity.ContactMessage> getPaginatedMessages(int start, int total) {
-        java.util.List<entity.ContactMessage> list = new java.util.ArrayList<>();
+    public List<ContactMessage> getPaginatedMessages(int start, int total) {
+        List<ContactMessage> list = new ArrayList<>();
         String sql = "SELECT * FROM contact_messages ORDER BY submitted_at DESC LIMIT ?, ?";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -68,7 +71,7 @@ public class SubscriberDAO {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                entity.ContactMessage msg = new entity.ContactMessage();
+                ContactMessage msg = new ContactMessage();
                 msg.setId(rs.getInt("id"));
                 msg.setName(rs.getString("name"));
                 msg.setEmail(rs.getString("email"));
@@ -94,8 +97,8 @@ public class SubscriberDAO {
         return 0;
     }
 
-    public java.util.List<entity.Subscriber> getPaginatedSubscribers(int start, int total) {
-        java.util.List<entity.Subscriber> list = new java.util.ArrayList<>();
+    public List<Subscriber> getPaginatedSubscribers(int start, int total) {
+        List<Subscriber> list = new ArrayList<>();
         String sql = "SELECT id, email, subscribed_at FROM subscriber ORDER BY subscribed_at DESC LIMIT ?, ?";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -104,7 +107,7 @@ public class SubscriberDAO {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                entity.Subscriber sub = new entity.Subscriber();
+                Subscriber sub = new Subscriber();
                 sub.setId(rs.getInt("id"));
                 sub.setEmail(rs.getString("email"));
                 sub.setSubscribedAt(rs.getTimestamp("subscribed_at"));
@@ -115,5 +118,4 @@ public class SubscriberDAO {
         }
         return list;
     }
-// ...
 }

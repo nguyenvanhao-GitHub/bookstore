@@ -1,8 +1,4 @@
-/* ============================================ */
-/*     HEADER - RESPONSIVE & OPTIMIZED          */
-/* ============================================ */
 
-/* ===== BASE VARIABLES ===== */
 :root {
     --header-height: 70px;
     --header-mobile: 64px;
@@ -110,10 +106,8 @@
     display: block;
     padding: 10px 22px;
     text-decoration: none;
-    /* CẬP NHẬT: Đồng bộ font và làm đậm hơn */
-    font-family: 'Inter', sans-serif; /* <-- Đã đổi sang Inter */
-    font-weight: 600; /* <-- Đã đổi sang 600 (Semi-bold) */
-    /* KẾT THÚC CẬP NHẬT */
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
     font-size: 1rem;
     letter-spacing: 0.3px;
     border-radius: 6px;
@@ -121,13 +115,11 @@
     white-space: nowrap;
     color: var(--text-color);
 }
-/* ... (Giữ nguyên phần còn lại của .nav-links li a::after) ... */
 
-/* Hiệu ứng gạch chân động */
 .nav-links li a::after {
     content: '';
     position: absolute;
-    bottom: -5px; /* Vị trí gạch chân */
+    bottom: -5px;
     left: 50%;
     width: 0;
     height: var(--underline-height);
@@ -137,46 +129,39 @@
 }
 
 .nav-links li a:hover {
-      color: var(--text-active);
+    color: var(--text-active);
 }
 
 .nav-links li a:hover::after {
-    width: calc(100% - 24px); /* Chiều rộng gạch chân khi hover (100% trừ padding) */
+    width: calc(100% - 24px);
     left: 12px;
 }
 
-/* ====================================================== */
-/* HIỆU ỨNG ACTIVE MỚI (Màu vàng và gạch chân vàng) */
-/* ====================================================== */
 
-/* 1. Màu chữ active */
 .nav-links li a.active {
-    color: var(--text-active); /* Màu chữ vàng */
-    background: none; /* Đảm bảo không có background lạ */
+    color: var(--text-active);
+    background: none;
 }
 
-/* 2. Gạch chân active */
+
 .nav-links li a.active::after {
-   content: '';
-   width: calc(100% - 20px); /* Kích thước đường gạch chân khi active */
-   left: 10px; /* Căn chỉnh để gạch chân nằm giữa */
-   background-color: var(--accent-color); /* Màu vàng */
-   transition: width 0.3s ease-out, left 0.3s ease-out;
+    content: '';
+    width: calc(100% - 20px);
+    left: 10px;
+    background-color: var(--accent-color);
+    transition: width 0.3s ease-out, left 0.3s ease-out;
 }
 
-/* Đảm bảo trạng thái active vẫn được ưu tiên hơn hover */
 .nav-links li a.active:hover {
-   color: var(--text-active);
-   background: none;
+    color: var(--text-active);
+    background: none;
 }
 .nav-links li a.active:hover::after {
-   width: calc(100% - 20px);
-   left: 10px;
+    width: calc(100% - 20px);
+    left: 10px;
 }
 
-/* ... (Các phần còn lại giữ nguyên) ... */
 
-/* ===== NAV RIGHT ACTIONS ===== */
 .nav-right {
     display: flex;
     align-items: center;
@@ -185,9 +170,7 @@
     margin-left: auto;
 }
 
-/* ========================================== */
-/*     CẬP NHẬT: SEARCH CONTAINER (Desktop)   */
-/* ========================================== */
+
 .search-container {
     position: relative;
     flex-shrink: 1;
@@ -200,10 +183,7 @@
     background: var(--primary-hover);
     transform: scale(1.05);
 }
-/*     KẾT THÚC CẬP NHẬT     */
-/* ========================================== */
 
-/* Search Results Dropdown */
 .search-results {
     position: absolute;
     top: calc(100% + 8px);
@@ -223,7 +203,7 @@
     animation: fadeIn 0.2s ease;
 }
 
-/* Search Result Items */
+
 .search-result-item {
     display: flex;
     gap: 12px;
@@ -415,7 +395,7 @@
 
 /* Badge */
 .badge {
-     position: absolute;
+    position: absolute;
     top: -4px;
     right: -4px;
     background: #f44336; /* Màu đỏ Material Design */
@@ -438,7 +418,7 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    /* Cập nhật màu gradient để phù hợp hơn với primary color */
+
     background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
     color: white;
     display: flex;
@@ -497,7 +477,7 @@
 
 .dropdown-header {
     padding: 16px 20px;
-    /* Cập nhật màu gradient để phù hợp hơn với primary color */
+
     background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
     color: white;
     font-weight: 600;
@@ -852,7 +832,7 @@
         width: calc(100% - 24px);
         max-width: 320px;
     }
-    
+
     .user-dropdown::before {
         display: none;
     }

@@ -1,7 +1,6 @@
 let slideIndex = 1;
 showSlides(slideIndex);
 
-// Auto advance slides every 5 seconds
 setInterval(() => {
     changeSlide(1);
 }, 5000);
@@ -25,13 +24,11 @@ function showSlides(n) {
         slideIndex = slides.length;
     }
     
-    // Hide all slides
     for (let i = 0; i < slides.length; i++) {
         slides[i].classList.remove("active");
         dots[i].classList.remove("active");
     }
     
-    // Show current slide
     slides[slideIndex - 1].classList.add("active");
     dots[slideIndex - 1].classList.add("active");
 }

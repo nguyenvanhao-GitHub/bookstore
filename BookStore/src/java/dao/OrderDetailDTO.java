@@ -1,22 +1,12 @@
 package dao;
 
-// Import các thư viện cần thiết nếu sử dụng Timestamp hoặc các loại dữ liệu phức tạp khác
-// (Trong trường hợp này chỉ cần các loại dữ liệu cơ bản)
-
-/**
- * Data Transfer Object (DTO) dùng để truyền thông tin chi tiết
- * của một mặt hàng trong đơn hàng.
- */
 public class OrderDetailDTO {
 
-    // Thông tin cơ bản của sản phẩm
     private int bookId;
     private int quantity;
     
-    // Thông tin trạng thái (được lấy từ bảng 'orders' thông qua JOIN)
     private String orderStatus; 
     
-    // Constructors
 
     public OrderDetailDTO() {
     }
@@ -27,7 +17,6 @@ public class OrderDetailDTO {
         this.orderStatus = orderStatus;
     }
 
-    // Getters and Setters
 
     public int getBookId() {
         return bookId;
@@ -53,7 +42,6 @@ public class OrderDetailDTO {
         this.orderStatus = orderStatus;
     }
 
-    // Tùy chọn: Thêm phương thức toString() để debug
     @Override
     public String toString() {
         return "OrderDetailDTO{" +

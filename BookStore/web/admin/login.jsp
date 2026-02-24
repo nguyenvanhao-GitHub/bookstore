@@ -124,7 +124,6 @@
             showConfirmButton: false
         });
         <%
-                    // Xóa session sau khi hiện thông báo
                     session.removeAttribute("alertIcon");
                     session.removeAttribute("alertTitle");
                     session.removeAttribute("alertMessage");

@@ -6,7 +6,6 @@
 <%@ page import="entity.CartItem" %>
 
 <%
-    // ==================== LANGUAGE SETUP ====================
     String langParam = request.getParameter("lang");
     if (langParam != null) {
         LanguageHelper.setLanguage(request, langParam);
@@ -20,14 +19,12 @@
 %>
 
 <%
-    // ==================== SESSION DATA ====================
     String userName = (String) session.getAttribute("userName");
     String userEmail = (String) session.getAttribute("userEmail");
     boolean isLoggedIn = (userName != null && userEmail != null);
 %>
 
 <%
-    // ==================== CART DATA (MVC Refactored) ====================
     int totalItems = 0;
     double totalPrice = 0.0;
     List<CartItem> displayCartItems = new ArrayList<>();
@@ -40,14 +37,11 @@
             CartDAO cartDAO = new CartDAO();
             List<CartItem> allCartItems = cartDAO.getCartItems(userEmail);
 
-            // Tính tổng số lượng và tổng tiền
             for (CartItem item : allCartItems) {
                 totalItems += item.getQuantity();
-                // Giả sử giá trong DB là USD, nhân 300 ra VND (logic cũ của bạn)
                 totalPrice += (item.getPrice() * 300) * item.getQuantity();
             }
 
-            // Chỉ lấy 5 sản phẩm mới nhất để hiển thị trong dropdown
             if (allCartItems.size() > 5) {
                 displayCartItems = allCartItems.subList(0, 5);
             } else {
@@ -60,7 +54,6 @@
 %>
 
 <%
-    // ==================== CACHE CONTROL ====================
     response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     response.setHeader("Pragma", "no-cache");
     response.setDateHeader("Expires", 0);
@@ -69,7 +62,6 @@
 <!DOCTYPE html>
 <html lang="<%= currentLang%>">
     <head>
-        <!-- ==================== META TAGS ==================== -->
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -79,15 +71,11 @@
 
         <title>E-Books - Your Digital Library</title>
 
-        <!-- ==================== FAVICON ==================== -->
         <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/book-reader.svg">
 
-        <!-- ==================== FONTS ==================== -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-        <!-- ==================== STYLESHEETS ==================== -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">

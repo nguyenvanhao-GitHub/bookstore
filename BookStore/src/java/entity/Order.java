@@ -21,7 +21,6 @@ public class Order {
     public Order() {
     }
 
-    // Constructor 13 tham số khớp với ProcessOrderServlet
     public Order(String id, String customerName, String email, String phone, String address, 
                  String city, String state, String zipCode, String books, 
                  double totalAmount, String paymentMethod, String status, String transactionId) {
@@ -40,7 +39,6 @@ public class Order {
         this.transactionId = transactionId;
     }
 
-    // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     public String getCustomerName() { return customerName; }

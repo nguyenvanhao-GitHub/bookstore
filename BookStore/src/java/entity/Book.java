@@ -14,13 +14,11 @@ public class Book {
     private String description;
     private String publisherEmail;
     private Timestamp createdAt;
-    // [MỚI] Thêm trường PDF Preview
     private String pdfPreviewPath;
 
     public Book() {
     }
 
-    // Constructor đầy đủ
     public Book(int id, String name, String author, double price, String category,
             String image, int stock, String description, String publisherEmail,
             Timestamp createdAt, String pdfPreviewPath) {
@@ -37,7 +35,6 @@ public class Book {
         this.pdfPreviewPath = pdfPreviewPath;
     }
 
-    // Constructor dùng để thêm mới (không có ID và Time)
     public Book(String name, String author, double price, int stock, String description,
             String publisherEmail, String category, String image, String pdfPreviewPath) {
         this.name = name;
@@ -51,7 +48,6 @@ public class Book {
         this.pdfPreviewPath = pdfPreviewPath;
     }
 
-    // Thêm Constructor này vào class Book
     public Book(int id, String name, String author, double price, String category, String image, String pdfPreviewPath) {
         this.id = id;
         this.name = name;
@@ -62,8 +58,6 @@ public class Book {
         this.pdfPreviewPath = pdfPreviewPath;
     }
 
-    // Getters and Setters cũ giữ nguyên...
-    // [MỚI] Getter/Setter cho PDF
     public String getPdfPreviewPath() {
         return pdfPreviewPath;
     }
@@ -72,7 +66,6 @@ public class Book {
         this.pdfPreviewPath = pdfPreviewPath;
     }
 
-    // Các Getter/Setter cũ cần giữ lại đầy đủ...
     public int getId() {
         return id;
     }

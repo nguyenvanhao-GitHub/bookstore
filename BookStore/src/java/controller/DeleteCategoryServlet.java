@@ -8,25 +8,21 @@ import java.io.IOException;
 
 @WebServlet("/DeleteCategoryServlet")
 public class DeleteCategoryServlet extends HttpServlet {
-    
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        // 1. Lấy tham số
+
         String categoryIdStr = request.getParameter("categoryId");
         HttpSession session = request.getSession();
 
         try {
-            // 2. Validate và chuyển đổi dữ liệu
             if (categoryIdStr != null && !categoryIdStr.trim().isEmpty()) {
                 int id = Integer.parseInt(categoryIdStr);
-                
-                // 3. Gọi DAO
+
                 CategoryDAO dao = new CategoryDAO();
                 boolean success = dao.deleteCategory(id);
-                
-                // 4. Phản hồi kết quả qua Session (để JSP hiển thị Alert)
+
                 if (success) {
                     setAlert(session, "success", "Thành công", "Đã xóa danh mục!");
                 } else {
@@ -42,11 +38,9 @@ public class DeleteCategoryServlet extends HttpServlet {
             setAlert(session, "error", "Lỗi hệ thống", e.getMessage());
         }
 
-        // 5. Điều hướng
         response.sendRedirect("publisher/manage-categories.jsp");
     }
 
-    // Helper set thông báo cho Session
     private void setAlert(HttpSession session, String icon, String title, String message) {
         session.setAttribute("alertIcon", icon);
         session.setAttribute("alertTitle", title);

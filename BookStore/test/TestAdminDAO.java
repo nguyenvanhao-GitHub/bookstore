@@ -1,14 +1,15 @@
+
 import java.security.MessageDigest;
 import java.util.Base64;
 
 public class TestAdminDAO {
 
     public static void main(String[] args) {
-        String inputPassword = "12345"; 
-       
+        String inputPassword = "12345";
+
         // Hash và Salt LẤY TỪ DB:
-        String storedHash = "b+787F0z3x4B3I7S3T3E2x2N2W6U3R5f1H6C2f5L5T1I0V1J0M0W4c4k="; 
-        String salt = "QJ3Nlq/pE2u4bXj7Fz8jKw=="; 
+        String storedHash = "b+787F0z3x4B3I7S3T3E2x2N2W6U3R5f1H6C2f5L5T1I0V1J0M0W4c4k=";
+        String salt = "QJ3Nlq/pE2u4bXj7Fz8jKw==";
         // ----------------------------------------------------------------------
 
         System.out.println("--- BẮT ĐẦU KIỂM TRA MẬT KHẨU ADMIN ---");
@@ -19,10 +20,10 @@ public class TestAdminDAO {
 
         try {
             String newHash = hashPassword(inputPassword, salt);
-            
+
             System.out.println("4. Hash được tạo ra từ mật khẩu của bạn: " + newHash);
 
-            // 5. So sánh kết quả
+            // So sánh kết quả
             if (newHash.equals(storedHash)) {
                 System.out.println("\n KẾT QUẢ: HASH KHỚP. Mật khẩu gốc đã đúng.");
             } else {
@@ -36,12 +37,11 @@ public class TestAdminDAO {
     }
 
     /**
-     * Hàm Hash mật khẩu - Copy từ AdminDAO.java để đảm bảo logic nhất quán.
+     * Hàm Hash mật khẩu
      */
     private static String hashPassword(String password, String salt) throws Exception {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
-        // Đảm bảo thứ tự và phương pháp băm là giống nhau
-        md.update(salt.getBytes()); 
+        md.update(salt.getBytes());
         return Base64.getEncoder().encodeToString(md.digest(password.getBytes()));
     }
 }

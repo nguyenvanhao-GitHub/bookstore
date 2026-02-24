@@ -17,7 +17,6 @@ public class AdminLoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Thiết lập encoding
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
@@ -25,12 +24,11 @@ public class AdminLoginServlet extends HttpServlet {
         String password = request.getParameter("password");
 
         AdminDAO dao = new AdminDAO();
-        Admin admin = dao.login(email, password); // Hàm này nay trả về Admin dù trạng thái là gì nếu pass đúng
+        Admin admin = dao.login(email, password); 
 
         HttpSession session = request.getSession();
 
         if (admin != null) {
-            // 1. Kiểm tra trạng thái khóa
             if ("Locked".equalsIgnoreCase(admin.getStatus()) || "Inactive".equalsIgnoreCase(admin.getStatus())) {
                 String reason = admin.getLockReason(); // Lấy reason từ object
                 String msg = "Tài khoản của bạn đã bị khóa.";
@@ -44,7 +42,6 @@ public class AdminLoginServlet extends HttpServlet {
                 return;
             }
 
-            // 2. Đăng nhập thành công (Chỉ xảy ra khi status là 'Active')
             session.setAttribute("adminName", admin.getName());
             session.setAttribute("adminEmail", admin.getEmail());
             session.setAttribute("userRole", "admin");
@@ -52,12 +49,10 @@ public class AdminLoginServlet extends HttpServlet {
             showAlert(response, "success", "Đăng nhập thành công!", "Chào mừng " + admin.getName(), "admin/index.jsp", false);
 
         } else {
-            // 3. Đăng nhập thất bại (Sai email/pass)
             showAlert(response, "error", "Đăng nhập thất bại", "Email hoặc mật khẩu không đúng.", "admin/login.jsp", true);
         }
     }
 
-    // Hàm hiển thị thông báo SweetAlert2
     private void showAlert(HttpServletResponse response, String icon, String title, String text, String url, boolean confirm) throws IOException {
         PrintWriter out = response.getWriter();
         out.println("<!DOCTYPE html>");

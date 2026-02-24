@@ -8,17 +8,20 @@
 <script>document.querySelector('a[href="users.jsp"]').classList.add('active');</script>
 
 <%
-    // 1. Phân trang & Tìm kiếm
     int currentPage = 1;
     int recordsPerPage = 10;
     String search = request.getParameter("search");
-    
-    try {
-        if (request.getParameter("page") != null) currentPage = Integer.parseInt(request.getParameter("page"));
-        if (request.getParameter("records") != null) recordsPerPage = Integer.parseInt(request.getParameter("records"));
-    } catch (NumberFormatException e) {}
 
-    // 2. Lấy dữ liệu từ DAO
+    try {
+        if (request.getParameter("page") != null) {
+            currentPage = Integer.parseInt(request.getParameter("page"));
+        }
+        if (request.getParameter("records") != null) {
+            recordsPerPage = Integer.parseInt(request.getParameter("records"));
+        }
+    } catch (NumberFormatException e) {
+    }
+
     AccountDAO dao = new AccountDAO();
     int totalRecords = dao.countAllAccounts(search);
     int totalPages = (int) Math.ceil(totalRecords * 1.0 / recordsPerPage);
@@ -41,7 +44,7 @@
             <form action="../ManageAccountsServlet" method="post" class="d-flex align-items-center gap-2">
                 <input type="hidden" name="action" value="autolock">
                 <input type="hidden" name="daysInactive" value="90">
-                
+
                 <button class="btn btn-warning text-dark fw-bold" onclick="return confirm('Bạn có chắc muốn chạy quy trình khóa các tài khoản không hoạt động trên 90 ngày?')">
                     <i class="fas fa-bolt"></i> Chạy Ngay
                 </button>
@@ -54,9 +57,9 @@
             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addUserModal">
                 <i class="fas fa-plus-circle"></i> Thêm User Mới
             </button>
-            
+
             <form class="d-flex" method="get">
-                <input type="text" name="search" class="form-control me-2" placeholder="Tìm theo tên, email..." value="<%= search != null ? search : "" %>">
+                <input type="text" name="search" class="form-control me-2" placeholder="Tìm theo tên, email..." value="<%= search != null ? search : ""%>">
                 <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
             </form>
         </div>
@@ -66,110 +69,110 @@
                 <table class="table table-hover align-middle mb-0 text-center">
                     <thead class="bg-light text-secondary">
                         <tr>
-                            <th>Loại</th>
-                            <th class="text-start">Thông Tin User</th>
-                            <th>Vai Trò</th>
-                            <th>Trạng Thái</th>
-                            <th>Đăng Nhập Cuối</th>
-                            <th>Hành Động</th>
+                        <th>Loại</th>
+                        <th class="text-start">Thông Tin User</th>
+                        <th>Vai Trò</th>
+                        <th>Trạng Thái</th>
+                        <th>Đăng Nhập Cuối</th>
+                        <th>Hành Động</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <% 
-                        if (users.isEmpty()) {
-                        %>
-                            <tr><td colspan="6" class="text-center py-5 text-muted"><i class="fas fa-inbox fa-2x mb-2"></i><br>Không tìm thấy tài khoản nào.</td></tr>
                         <%
-                        } else {
-                            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-                            for (AccountDTO u : users) {
-                                boolean isLocked = "Locked".equalsIgnoreCase(u.status);
-                                String badgeClass = "admin".equals(u.source) ? "danger" : "publisher".equals(u.source) ? "warning text-dark" : "secondary";
+                            if (users.isEmpty()) {
                         %>
-                        <tr class="<%= isLocked ? "table-danger" : "" %>">
-                            <td><span class="badge bg-<%= badgeClass %>"><%= u.source.toUpperCase() %></span></td>
-                            <td class="text-start">
-                                <div class="fw-bold text-dark"><%= u.name %></div>
-                                <div class="small text-muted"><i class="far fa-envelope me-1"></i><%= u.email %></div>
-                            </td>
-                            <td><%= u.role %></td>
-                            <td>
-                                <% if (isLocked) { %>
-                                    <span class="badge bg-danger mb-1"><i class="fas fa-lock"></i> Locked</span>
-                                    <% if (u.lockReason != null) { %>
-                                        <div class="small text-danger" style="font-size: 0.75rem; max-width: 150px; margin: 0 auto;" title="<%= u.lockReason %>">
-                                            <%= u.lockReason.length() > 20 ? u.lockReason.substring(0, 18) + "..." : u.lockReason %>
-                                        </div>
-                                    <% } %>
-                                <% } else { %>
-                                    <span class="badge bg-success">Active</span>
-                                <% } %>
-                            </td>
-                            <td class="small text-muted">
-                                <%= u.lastLogin != null ? sdf.format(u.lastLogin) : "Chưa từng" %>
-                            </td>
-                            <td>
-                                <div class="btn-group shadow-sm">
-                                    <button class="btn btn-sm btn-outline-primary" title="Sửa thông tin"
-                                            onclick="fillEditForm('<%= u.source %>', <%= u.id %>, '<%= u.name %>', '<%= u.email %>', '<%= u.role %>', '<%= u.contact %>', '<%= u.gender %>')">
-                                        <i class="fas fa-edit"></i>
+                        <tr><td colspan="6" class="text-center py-5 text-muted"><i class="fas fa-inbox fa-2x mb-2"></i><br>Không tìm thấy tài khoản nào.</td></tr>
+                            <%
+                            } else {
+                                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                                for (AccountDTO u : users) {
+                                    boolean isLocked = "Locked".equalsIgnoreCase(u.status);
+                                    String badgeClass = "admin".equals(u.source) ? "danger" : "publisher".equals(u.source) ? "warning text-dark" : "secondary";
+                            %>
+                        <tr class="<%= isLocked ? "table-danger" : ""%>">
+                        <td><span class="badge bg-<%= badgeClass%>"><%= u.source.toUpperCase()%></span></td>
+                        <td class="text-start">
+                            <div class="fw-bold text-dark"><%= u.name%></div>
+                            <div class="small text-muted"><i class="far fa-envelope me-1"></i><%= u.email%></div>
+                        </td>
+                        <td><%= u.role%></td>
+                        <td>
+                            <% if (isLocked) { %>
+                        <span class="badge bg-danger mb-1"><i class="fas fa-lock"></i> Locked</span>
+                        <% if (u.lockReason != null) {%>
+                        <div class="small text-danger" style="font-size: 0.75rem; max-width: 150px; margin: 0 auto;" title="<%= u.lockReason%>">
+                            <%= u.lockReason.length() > 20 ? u.lockReason.substring(0, 18) + "..." : u.lockReason%>
+                        </div>
+                        <% } %>
+                        <% } else { %>
+                        <span class="badge bg-success">Active</span>
+                        <% }%>
+                        </td>
+                        <td class="small text-muted">
+                            <%= u.lastLogin != null ? sdf.format(u.lastLogin) : "Chưa từng"%>
+                        </td>
+                        <td>
+                            <div class="btn-group shadow-sm">
+                                <button class="btn btn-sm btn-outline-primary" title="Sửa thông tin"
+                                        onclick="fillEditForm('<%= u.source%>', <%= u.id%>, '<%= u.name%>', '<%= u.email%>', '<%= u.role%>', '<%= u.contact%>', '<%= u.gender%>')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+
+                                <% if (!isLocked) {%>
+                                <button class="btn btn-sm btn-outline-warning" 
+                                        onclick="lockAccount('<%= u.source%>', <%= u.id%>)" 
+                                        title="Khóa tài khoản">
+                                    <i class="fas fa-lock"></i>
+                                </button>
+                                <% } else {%>
+                                <form action="../ManageAccountsServlet" method="post" class="d-inline">
+                                    <input type="hidden" name="action" value="unlock">
+                                    <input type="hidden" name="targetTable" value="<%= u.source%>">
+                                    <input type="hidden" name="id" value="<%= u.id%>">
+                                    <button class="btn btn-sm btn-outline-success" title="Mở khóa">
+                                        <i class="fas fa-unlock"></i>
                                     </button>
+                                </form>
+                                <% }%>
 
-                                    <% if (!isLocked) { %>
-                                        <button class="btn btn-sm btn-outline-warning" 
-                                                onclick="lockAccount('<%= u.source %>', <%= u.id %>)" 
-                                                title="Khóa tài khoản">
-                                            <i class="fas fa-lock"></i>
-                                        </button>
-                                    <% } else { %>
-                                        <form action="../ManageAccountsServlet" method="post" class="d-inline">
-                                            <input type="hidden" name="action" value="unlock">
-                                            <input type="hidden" name="targetTable" value="<%= u.source %>">
-                                            <input type="hidden" name="id" value="<%= u.id %>">
-                                            <button class="btn btn-sm btn-outline-success" title="Mở khóa">
-                                                <i class="fas fa-unlock"></i>
-                                            </button>
-                                        </form>
-                                    <% } %>
+                                <form action="../ManageAccountsServlet" method="post" class="d-inline" onsubmit="return confirm('Reset mật khẩu cho user này? Mật khẩu mới sẽ gửi qua email.')">
+                                    <input type="hidden" name="action" value="reset">
+                                    <input type="hidden" name="targetTable" value="<%= u.source%>">
+                                    <input type="hidden" name="id" value="<%= u.id%>">
+                                    <button class="btn btn-sm btn-outline-info" title="Cấp lại mật khẩu">
+                                        <i class="fas fa-key"></i>
+                                    </button>
+                                </form>
 
-                                    <form action="../ManageAccountsServlet" method="post" class="d-inline" onsubmit="return confirm('Reset mật khẩu cho user này? Mật khẩu mới sẽ gửi qua email.')">
-                                        <input type="hidden" name="action" value="reset">
-                                        <input type="hidden" name="targetTable" value="<%= u.source %>">
-                                        <input type="hidden" name="id" value="<%= u.id %>">
-                                        <button class="btn btn-sm btn-outline-info" title="Cấp lại mật khẩu">
-                                            <i class="fas fa-key"></i>
-                                        </button>
-                                    </form>
-
-                                    <form action="../ManageAccountsServlet" method="post" class="d-inline" onsubmit="return confirm('CẢNH BÁO: Hành động này không thể hoàn tác! Xóa tài khoản?')">
-                                        <input type="hidden" name="action" value="delete">
-                                        <input type="hidden" name="targetTable" value="<%= u.source %>">
-                                        <input type="hidden" name="id" value="<%= u.id %>">
-                                        <button class="btn btn-sm btn-outline-danger" title="Xóa">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
+                                <form action="../ManageAccountsServlet" method="post" class="d-inline" onsubmit="return confirm('CẢNH BÁO: Hành động này không thể hoàn tác! Xóa tài khoản?')">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="targetTable" value="<%= u.source%>">
+                                    <input type="hidden" name="id" value="<%= u.id%>">
+                                    <button class="btn btn-sm btn-outline-danger" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
                         </tr>
-                        <% 
+                        <%
+                                }
                             }
-                        } 
                         %>
                     </tbody>
                 </table>
             </div>
-            
-            <% if (totalPages > 1) { %>
+
+            <% if (totalPages > 1) {%>
             <div class="card-footer bg-white py-3">
                 <nav>
                     <ul class="pagination justify-content-center mb-0">
-                        <li class="page-item <%= currentPage == 1 ? "disabled" : "" %>">
-                            <a class="page-link" href="?page=<%= currentPage - 1 %>&search=<%= search != null ? search : "" %>">Trước</a>
+                        <li class="page-item <%= currentPage == 1 ? "disabled" : ""%>">
+                            <a class="page-link" href="?page=<%= currentPage - 1%>&search=<%= search != null ? search : ""%>">Trước</a>
                         </li>
-                        <li class="page-item disabled"><span class="page-link">Trang <%= currentPage %> / <%= totalPages %></span></li>
-                        <li class="page-item <%= currentPage == totalPages ? "disabled" : "" %>">
-                            <a class="page-link" href="?page=<%= currentPage + 1 %>&search=<%= search != null ? search : "" %>">Sau</a>
+                        <li class="page-item disabled"><span class="page-link">Trang <%= currentPage%> / <%= totalPages%></span></li>
+                        <li class="page-item <%= currentPage == totalPages ? "disabled" : ""%>">
+                            <a class="page-link" href="?page=<%= currentPage + 1%>&search=<%= search != null ? search : ""%>">Sau</a>
                         </li>
                     </ul>
                 </nav>
@@ -233,7 +236,7 @@
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="targetTable" id="editTargetTable">
                     <input type="hidden" name="id" id="editId">
-                    
+
                     <div class="mb-3">
                         <label class="form-label">Họ và Tên</label>
                         <input type="text" name="name" id="editName" class="form-control" required>
@@ -273,79 +276,79 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Điền thông tin vào Modal Edit
-    function fillEditForm(table, id, name, email, role, contact, gender) {
-        document.getElementById("editTargetTable").value = table;
-        document.getElementById("editId").value = id;
-        document.getElementById("editName").value = name;
-        document.getElementById("editEmail").value = email;
-        document.getElementById("editRole").value = role;
-        document.getElementById("editContact").value = (contact && contact !== 'null') ? contact : '';
-        document.getElementById("editGender").value = (gender && gender !== 'null') ? gender : 'Other';
-        
-        new bootstrap.Modal(document.getElementById('editModal')).show();
-    }
 
-    // Xử lý nút Lock với Popup nhập lý do
-    function lockAccount(table, id) {
-        Swal.fire({
-            title: 'Khóa tài khoản này?',
-            input: 'text',
-            inputLabel: 'Lý do khóa (bắt buộc)',
-            inputPlaceholder: 'VD: Vi phạm chính sách, spam...',
-            showCancelButton: true,
-            confirmButtonText: 'Khóa Ngay',
-            cancelButtonText: 'Hủy',
-            confirmButtonColor: '#d33',
-            preConfirm: (reason) => {
-                if (!reason) {
-                    Swal.showValidationMessage('Vui lòng nhập lý do để tiếp tục!');
-                }
-                return reason;
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Tạo form ẩn để gửi dữ liệu
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '../ManageAccountsServlet';
-                
-                const inputs = {
-                    'action': 'lock',
-                    'targetTable': table,
-                    'id': id,
-                    'lockReason': result.value
-                };
-                for (const [key, value] of Object.entries(inputs)) {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = key;
-                    input.value = value;
-                    form.appendChild(input);
-                }
-                
-                document.body.appendChild(form);
-                form.submit();
-            }
-        });
-    }
+                                    function fillEditForm(table, id, name, email, role, contact, gender) {
+                                        document.getElementById("editTargetTable").value = table;
+                                        document.getElementById("editId").value = id;
+                                        document.getElementById("editName").value = name;
+                                        document.getElementById("editEmail").value = email;
+                                        document.getElementById("editRole").value = role;
+                                        document.getElementById("editContact").value = (contact && contact !== 'null') ? contact : '';
+                                        document.getElementById("editGender").value = (gender && gender !== 'null') ? gender : 'Other';
 
-    // Hiển thị thông báo kết quả (Toast) từ Session (LOGIC NÀY ĐÃ ĐÚNG)
-    <% 
+                                        new bootstrap.Modal(document.getElementById('editModal')).show();
+                                    }
+
+
+                                    function lockAccount(table, id) {
+                                        Swal.fire({
+                                            title: 'Khóa tài khoản này?',
+                                            input: 'text',
+                                            inputLabel: 'Lý do khóa (bắt buộc)',
+                                            inputPlaceholder: 'VD: Vi phạm chính sách, spam...',
+                                            showCancelButton: true,
+                                            confirmButtonText: 'Khóa Ngay',
+                                            cancelButtonText: 'Hủy',
+                                            confirmButtonColor: '#d33',
+                                            preConfirm: (reason) => {
+                                                if (!reason) {
+                                                    Swal.showValidationMessage('Vui lòng nhập lý do để tiếp tục!');
+                                                }
+                                                return reason;
+                                            }
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+
+                                                const form = document.createElement('form');
+                                                form.method = 'POST';
+                                                form.action = '../ManageAccountsServlet';
+
+                                                const inputs = {
+                                                    'action': 'lock',
+                                                    'targetTable': table,
+                                                    'id': id,
+                                                    'lockReason': result.value
+                                                };
+                                                for (const [key, value] of Object.entries(inputs)) {
+                                                    const input = document.createElement('input');
+                                                    input.type = 'hidden';
+                                                    input.name = key;
+                                                    input.value = value;
+                                                    form.appendChild(input);
+                                                }
+
+                                                document.body.appendChild(form);
+                                                form.submit();
+                                            }
+                                        });
+                                    }
+
+
+    <%
         String alertIcon = (String) session.getAttribute("alertIcon");
         if (alertIcon != null) {
             String title = (String) session.getAttribute("alertTitle");
             String msg = (String) session.getAttribute("alertMessage");
             session.removeAttribute("alertIcon");
-            session.removeAttribute("alertTitle"); 
+            session.removeAttribute("alertTitle");
             session.removeAttribute("alertMessage");
     %>
-        Swal.fire({
-            icon: '<%= alertIcon %>',
-            title: '<%= title %>',
-            text: '<%= msg %>',
-            timer: 2500,
-            showConfirmButton: false
-        });
-    <% } %>
+                                    Swal.fire({
+                                        icon: '<%= alertIcon%>',
+                                        title: '<%= title%>',
+                                        text: '<%= msg%>',
+                                        timer: 2500,
+                                        showConfirmButton: false
+                                    });
+    <% }%>
 </script>

@@ -1,7 +1,10 @@
 package dao;
 
 import context.DBContext;
+import entity.ContactMessage;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ContactDAO {
 
@@ -35,20 +38,19 @@ public class ContactDAO {
         return false;
     }
 
-    public java.util.List<entity.ContactMessage> getAllMessages() {
-        java.util.List<entity.ContactMessage> list = new java.util.ArrayList<>();
+    public List<ContactMessage> getAllMessages() {
+        List<ContactMessage> list = new ArrayList<>();
         String sql = "SELECT * FROM contact_messages ORDER BY submitted_at DESC";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                entity.ContactMessage msg = new entity.ContactMessage();
+                ContactMessage msg = new ContactMessage();
                 msg.setId(rs.getInt("id"));
                 msg.setName(rs.getString("name"));
                 msg.setEmail(rs.getString("email"));
                 msg.setSubject(rs.getString("subject"));
                 msg.setMessage(rs.getString("message"));
                 msg.setSubmittedAt(rs.getTimestamp("submitted_at"));
-                // Xóa dòng msg.setReplied(...);
                 list.add(msg);
             }
         } catch (Exception e) {
@@ -68,8 +70,8 @@ public class ContactDAO {
         return 0;
     }
 
-    public java.util.List<entity.ContactMessage> getPaginatedMessages(int start, int total) {
-        java.util.List<entity.ContactMessage> list = new java.util.ArrayList<>();
+    public List<ContactMessage> getPaginatedMessages(int start, int total) {
+        List<ContactMessage> list = new ArrayList<>();
         String sql = "SELECT * FROM contact_messages ORDER BY submitted_at DESC LIMIT ?, ?";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -78,7 +80,7 @@ public class ContactDAO {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                entity.ContactMessage msg = new entity.ContactMessage();
+                ContactMessage msg = new ContactMessage();
                 msg.setId(rs.getInt("id"));
                 msg.setName(rs.getString("name"));
                 msg.setEmail(rs.getString("email"));
@@ -92,5 +94,4 @@ public class ContactDAO {
         }
         return list;
     }
-// ...
 }

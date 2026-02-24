@@ -12,7 +12,7 @@ import java.util.*;
  */
 public class VNPayConfig {
 
-    // ✅ Cấu hình VNPay Sandbox - Lấy từ email đăng ký
+    // Cấu hình VNPay Sandbox - Lấy từ email đăng ký
     public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
     public static String vnp_ReturnUrl = "http://localhost:8081/BookStore/VNPayReturnServlet";
     public static String vnp_TmnCode = "7WX4QWV7"; // Terminal ID

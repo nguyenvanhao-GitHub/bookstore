@@ -26,7 +26,6 @@ public class UserDAO {
                 String storedPass = rs.getString("password");
                 String salt = rs.getString("salt");
 
-                // Verify mật khẩu
                 if (verifyPassword(password, salt, storedPass)) {
                     User user = new User();
                     user.setId(rs.getInt("id"));
@@ -45,11 +44,7 @@ public class UserDAO {
         return null;
     }
 
-    // 2. Cập nhật Last Login: Chỉ update nếu KHÔNG BỊ KHÓA
     public void updateLastLogin(int userId) {
-        // Logic: Cập nhật thời gian login. 
-        // Nếu status là 'Inactive' -> chuyển thành 'Active'. 
-        // Nếu status là 'Locked' -> GIỮ NGUYÊN (Không được tự động mở khóa).
         String sql = "UPDATE user SET last_login = NOW(), "
                 + "status = CASE WHEN status = 'Inactive' THEN 'Active' ELSE status END "
                 + "WHERE id = ?";
@@ -61,7 +56,6 @@ public class UserDAO {
         }
     }
 
-    // Helper Verify Password
     private boolean verifyPassword(String inputPass, String salt, String storedHash) throws Exception {
         if (salt == null || storedHash == null) {
             return false;
@@ -72,7 +66,6 @@ public class UserDAO {
         return newHash.equals(storedHash);
     }
 
-    // Dùng cho Logout
     public void logout(String email) {
         String sql = "UPDATE user SET last_logout = NOW(), status = 'inactive' WHERE email = ?";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -83,7 +76,6 @@ public class UserDAO {
         }
     }
 
-    // Dùng cho Forgot Password: Kiểm tra email có tồn tại không -> Trả về ID
     public int getUserIdByEmail(String email) {
         String sql = "SELECT id FROM user WHERE email = ?";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -98,7 +90,6 @@ public class UserDAO {
         return -1;
     }
 
-    // Dùng cho Forgot Password: Cập nhật pass mới
     public boolean updatePassword(int userId, String hashedPassword, String salt) {
         String sql = "UPDATE user SET password = ?, salt = ? WHERE id = ?";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -162,7 +153,7 @@ public class UserDAO {
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, newName);
             ps.setString(2, newPhone);
-            ps.setString(3, newAddress); // Cần đảm bảo bảng user có cột address, nếu không hãy thêm vào DB hoặc bỏ dòng này
+            ps.setString(3, newAddress); 
             ps.setString(4, oldEmail);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
@@ -172,12 +163,10 @@ public class UserDAO {
     }
 
     public boolean changePassword(String email, String currentPass, String newPass) {
-        // Cần lấy salt cũ để check pass cũ trước
         String sqlGet = "SELECT password, salt FROM user WHERE email = ?";
         String sqlUpdate = "UPDATE user SET password = ?, salt = ? WHERE email = ?";
 
         try (Connection conn = db.getConnection()) {
-            // 1. Verify old pass
             String storedPass = null;
             String salt = null;
             try (PreparedStatement ps = conn.prepareStatement(sqlGet)) {
@@ -190,8 +179,7 @@ public class UserDAO {
             }
 
             if (storedPass != null && verifyPassword(currentPass, salt, storedPass)) {
-                // 2. Update new pass
-                String newSalt = generateSalt(); // Hàm này cần implement hoặc lấy từ Utils
+                String newSalt = generateSalt(); 
                 String newHashed = hashPassword(newPass, newSalt);
                 try (PreparedStatement ps = conn.prepareStatement(sqlUpdate)) {
                     ps.setString(1, newHashed);
@@ -217,7 +205,6 @@ public class UserDAO {
         return false;
     }
 
-    // Helper hashing (bạn có thể đưa vào class Utils riêng)
     private String hashPassword(String password, String salt) throws Exception {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         md.update(salt.getBytes());
@@ -225,8 +212,7 @@ public class UserDAO {
     }
 
     private String generateSalt() {
-        // Logic sinh salt (copy từ SignupServlet cũ sang đây hoặc Utils)
-        return "randomSalt"; // Placeholder
+        return "randomSalt"; 
     }
 
     private void updateLastLogin(String email) {
@@ -239,8 +225,8 @@ public class UserDAO {
         }
     }
 
-    public List<entity.User> getAllUsers(int start, int total) {
-        List<entity.User> list = new ArrayList<>();
+    public List<User> getAllUsers(int start, int total) {
+        List<User> list = new ArrayList<>();
         String sql = "SELECT * FROM user ORDER BY id DESC LIMIT ?, ?";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, start);
@@ -284,8 +270,6 @@ public class UserDAO {
         }
     }
 
-    // Thêm vào class UserDAO
-    // 1. Lấy thông tin User chi tiết (Dùng cho trang Settings)
     public User getUserByEmail(String email) {
         String sql = "SELECT * FROM user WHERE email = ?";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -301,7 +285,6 @@ public class UserDAO {
                 user.setRole(rs.getString("role"));
                 user.setStatus(rs.getString("status"));
                 user.setLastLogin(rs.getTimestamp("last_login"));
-                // Các trường bảo mật như password/salt không cần lấy ở đây nếu không dùng
                 return user;
             }
         } catch (Exception e) {
@@ -310,15 +293,9 @@ public class UserDAO {
         return null;
     }
 
-    // Trong class UserDAO.java hiện tại của bạn
-// ... (các imports và constructor hiện có) ...
-    /**
-     * Kiểm tra xem email có tồn tại VÀ có phải là tài khoản Admin hay không.
-     */
     public boolean isEmailAdmin(String email) {
-        // Giả định: role_id = 1 là Admin
         String sql = "SELECT COUNT(*) FROM user WHERE email = ? AND role_id = 1";
-        try (Connection conn = db.getConnection(); // Sử dụng DBContext của bạn
+        try (Connection conn = db.getConnection();
                  PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, email);
@@ -332,9 +309,6 @@ public class UserDAO {
         return false;
     }
 
-    /**
-     * Cập nhật mật khẩu Admin (đã được Hash) và Salt mới.
-     */
     public boolean updateAdminPassword(String email, String hashedPass, String salt) {
         String sql = "UPDATE user SET password = ?, salt = ?, status = 'Active' WHERE email = ? AND role_id = 1";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -347,5 +321,52 @@ public class UserDAO {
             e.printStackTrace();
             return false;
         }
+    }
+    
+    public boolean updateUserProfile(User user) {
+        String sql = "UPDATE user SET name = ?, contact = ?, gender = ? WHERE email = ?";
+        try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, user.getName());
+            ps.setString(2, user.getContact());
+            ps.setString(3, user.getGender());
+            ps.setString(4, user.getEmail());
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean checkPassword(String email, String inputRawPassword) {
+        String sql = "SELECT password, salt FROM user WHERE email = ?";
+        try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                String storedHash = rs.getString("password");
+                String salt = rs.getString("salt");
+                return verifyPassword(inputRawPassword, salt, storedHash);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean changePassword(String email, String newRawPassword) {
+        String sql = "UPDATE user SET password = ?, salt = ? WHERE email = ?";
+        try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            String newSalt = generateSalt();
+            String newHashedPass = hashPassword(newRawPassword, newSalt);
+
+            ps.setString(1, newHashedPass);
+            ps.setString(2, newSalt);
+            ps.setString(3, email);
+            
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

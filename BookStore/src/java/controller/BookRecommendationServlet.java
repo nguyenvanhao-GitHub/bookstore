@@ -33,7 +33,6 @@ public class BookRecommendationServlet extends HttpServlet {
                 bookId = Integer.parseInt(bookIdStr);
             }
             
-            // Điều hướng gọi hàm DAO dựa trên type
             if ("category".equals(type) && value != null) {
                 recommendations = dao.getBooksByCategory(value, bookId);
             } else if ("author".equals(type) && value != null) {
@@ -43,11 +42,9 @@ public class BookRecommendationServlet extends HttpServlet {
             } else if ("similar".equals(type) && bookId > 0) {
                 recommendations = dao.getSimilarBooks(bookId);
             } else {
-                // Mặc định hoặc type="popular"
                 recommendations = dao.getPopularBooks();
             }
             
-            // Trả về JSON
             response.setContentType("application/json;charset=UTF-8");
             response.setHeader("Cache-Control", "no-cache");
             

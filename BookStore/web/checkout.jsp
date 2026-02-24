@@ -5,7 +5,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%
-    // Kiểm tra đăng nhập
     String userEmail = (String) session.getAttribute("userEmail");
     String userName = (String) session.getAttribute("userName");
     if (userEmail == null) {
@@ -13,7 +12,6 @@
         return;
     }
 
-    // Nhận dữ liệu từ Cart
     String selectedItemsJSON = request.getParameter("selectedItems");
     String totalAmountStr = request.getParameter("totalAmount");
 
@@ -30,19 +28,23 @@
             for (JsonElement element : jsonArray) {
                 JsonObject jsonItem = element.getAsJsonObject();
                 Map<String, Object> item = new HashMap<>();
-                
+
                 String bookName = jsonItem.has("bookname") ? jsonItem.get("bookname").getAsString() : "Sản phẩm";
                 String author = jsonItem.has("author") ? jsonItem.get("author").getAsString() : "";
                 int quantity = jsonItem.has("quantity") ? jsonItem.get("quantity").getAsInt() : 1;
                 double subtotal = jsonItem.has("subtotal") ? jsonItem.get("subtotal").getAsDouble() : 0.0;
                 
+                String image = jsonItem.has("image") ? jsonItem.get("image").getAsString() : "images/default-book.png";
+
                 item.put("bookname", bookName);
                 item.put("author", author);
                 item.put("quantity", quantity);
                 item.put("subtotal", subtotal);
+                item.put("image", image); 
+                
                 displayItems.add(item);
             }
-            
+
             if (totalAmountStr != null && !totalAmountStr.isEmpty()) {
                 total = Double.parseDouble(totalAmountStr);
             }
@@ -58,157 +60,163 @@
 
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Thanh toán - BookStore</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
-        .checkout-container { max-width: 1200px; margin: 40px auto; display: grid; grid-template-columns: 1fr 400px; gap: 30px; }
-        .card-custom { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .section-header { font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; color: #333; display: flex; align-items: center; gap: 10px; }
-        .section-header i { color: #2563eb; }
-        .payment-option { border: 2px solid #eee; border-radius: 10px; padding: 15px; margin-bottom: 15px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 15px; }
-        .payment-option:hover, .payment-option.selected { border-color: #2563eb; background: #f8fbff; }
-        .payment-logo { font-size: 24px; width: 50px; text-align: center; }
-        .checkout-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1.1rem; margin-top: 20px; transition: 0.3s; }
-        .checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3); }
-        .summary-item { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 0.95rem; }
-        .total-row { border-top: 2px dashed #eee; margin-top: 20px; padding-top: 20px; font-size: 1.2rem; font-weight: 700; color: #dc2626; display: flex; justify-content: space-between; }
-    </style>
-</head>
-<body>
-    <div class="checkout-container">
-        <div class="card-custom">
-            <div class="section-header"><i class="fas fa-map-marker-alt"></i> Thông tin giao hàng</div>
+    <head>
+        <meta charset="UTF-8">
+        <title>Thanh toán - BookStore</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+            .checkout-container { max-width: 1200px; margin: 40px auto; display: grid; grid-template-columns: 1fr 450px; gap: 30px; padding: 0 15px; }
+            .card-custom { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+            .section-header { font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; color: #333; display: flex; align-items: center; gap: 10px; }
+            .section-header i { color: #2563eb; }
             
-            <form id="checkoutForm" method="post" onsubmit="return validateForm()">
-                <input type="hidden" name="total" value="<%= total %>">
-                <% 
-                    StringBuilder books = new StringBuilder();
-                    for(Map<String, Object> i : displayItems) {
-                        books.append(i.get("bookname")).append(" (x").append(i.get("quantity")).append("), ");
-                    }
-                    String booksStr = books.length() > 2 ? books.substring(0, books.length() - 2) : "";
-                %>
-                <input type="hidden" name="books" value="<%= booksStr %>">
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Họ và tên</label>
-                        <input type="text" class="form-control" name="fullName" value="<%= userName %>" readonly>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" name="email" value="<%= userEmail %>" readonly>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
-                        <input type="tel" class="form-control" id="phone" name="phone" placeholder="Ví dụ: 0912345678" required>
-                        <small class="text-danger" id="phoneError"></small>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Thành phố <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="city" required>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Quận / Huyện <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="state" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Mã bưu điện</label>
-                        <input type="text" class="form-control" name="zipCode" value="700000">
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label">Địa chỉ chi tiết <span class="text-danger">*</span></label>
-                    <textarea class="form-control" name="address" rows="2" placeholder="Số nhà, tên đường, phường/xã..." required></textarea>
-                </div>
-
-                <div class="section-header"><i class="fas fa-credit-card"></i> Phương thức thanh toán</div>
-                
-                <div class="payment-option selected" onclick="selectPayment('vnpay', this)">
-                    <input type="radio" name="paymentMethod" value="vnpay" checked class="form-check-input">
-                    <div class="payment-logo text-primary"><i class="fas fa-qrcode"></i></div>
-                    <div>
-                        <div class="fw-bold">VNPay QR / ATM / Thẻ quốc tế</div>
-                        <small class="text-muted">Thanh toán an toàn qua cổng VNPay</small>
-                    </div>
-                </div>
-
-                <div class="payment-option" onclick="selectPayment('cod', this)">
-                    <input type="radio" name="paymentMethod" value="cod" class="form-check-input">
-                    <div class="payment-logo text-success"><i class="fas fa-money-bill-wave"></i></div>
-                    <div>
-                        <div class="fw-bold">Thanh toán khi nhận hàng (COD)</div>
-                        <small class="text-muted">Trả tiền mặt khi giao hàng</small>
-                    </div>
-                </div>
-
-                <button type="submit" class="checkout-btn">
-                    <i class="fas fa-lock me-2"></i> HOÀN TẤT ĐẶT HÀNG
-                </button>
-            </form>
-        </div>
-
-        <div class="card-custom h-100">
-            <div class="section-header"><i class="fas fa-shopping-basket"></i> Đơn hàng (<%= displayItems.size() %>)</div>
+            .payment-option { border: 2px solid #eee; border-radius: 10px; padding: 15px; margin-bottom: 15px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 15px; }
+            .payment-option:hover, .payment-option.selected { border-color: #2563eb; background: #f8fbff; }
+            .payment-logo { font-size: 24px; width: 50px; text-align: center; }
             
-            <div style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
-                <% for (Map<String, Object> item : displayItems) { %>
-                <div class="summary-item border-bottom pb-2">
-                    <div>
-                        <div class="fw-bold"><%= item.get("bookname") %></div>
-                        <small class="text-muted"><%= item.get("author") %> | x<%= item.get("quantity") %></small>
+            .checkout-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1.1rem; margin-top: 20px; transition: 0.3s; }
+            .checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3); }
+
+            .summary-item { display: flex; gap: 15px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #eee; }
+            .summary-item:last-child { border-bottom: none; }
+            .item-img { width: 60px; height: 90px; object-fit: cover; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee; }
+            .item-info { flex: 1; }
+            .item-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+            .item-meta { font-size: 0.85rem; color: #666; }
+            
+            .total-row { border-top: 2px dashed #eee; margin-top: 20px; padding-top: 20px; font-size: 1.2rem; font-weight: 700; color: #dc2626; display: flex; justify-content: space-between; }
+        </style>
+    </head>
+    <body>
+        <div class="checkout-container">
+            <div class="card-custom">
+                <div class="section-header"><i class="fas fa-map-marker-alt"></i> Thông tin giao hàng</div>
+
+                <form id="checkoutForm" method="post" onsubmit="return validateForm()">
+                    <input type="hidden" name="total" value="<%= total%>">
+                    
+                    <textarea name="books" style="display:none;"><%= selectedItemsJSON %></textarea>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Họ và tên</label>
+                            <input type="text" class="form-control" name="fullName" value="<%= userName%>" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" value="<%= userEmail%>" readonly>
+                        </div>
                     </div>
-                    <div class="fw-bold text-primary">
-                        <%= currencyVN.format(item.get("subtotal")) %>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="phone" name="phone" placeholder="Ví dụ: 0912345678" required>
+                            <small class="text-danger" id="phoneError"></small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Thành phố <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="city" required>
+                        </div>
                     </div>
-                </div>
-                <% } %>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Quận / Huyện <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="state" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mã bưu điện</label>
+                            <input type="text" class="form-control" name="zipCode" value="700000">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Địa chỉ chi tiết <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="address" rows="2" placeholder="Số nhà, tên đường, phường/xã..." required></textarea>
+                    </div>
+
+                    <div class="section-header"><i class="fas fa-credit-card"></i> Phương thức thanh toán</div>
+
+                    <div class="payment-option selected" onclick="selectPayment('vnpay', this)">
+                        <input type="radio" name="paymentMethod" value="vnpay" checked class="form-check-input d-none">
+                        <div class="payment-logo text-primary"><i class="fas fa-qrcode"></i></div>
+                        <div>
+                            <div class="fw-bold">VNPay QR / ATM / Thẻ quốc tế</div>
+                            <small class="text-muted">Thanh toán an toàn qua cổng VNPay</small>
+                        </div>
+                    </div>
+
+                    <div class="payment-option" onclick="selectPayment('cod', this)">
+                        <input type="radio" name="paymentMethod" value="cod" class="form-check-input d-none">
+                        <div class="payment-logo text-success"><i class="fas fa-money-bill-wave"></i></div>
+                        <div>
+                            <div class="fw-bold">Thanh toán khi nhận hàng (COD)</div>
+                            <small class="text-muted">Trả tiền mặt khi giao hàng</small>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="checkout-btn">
+                        <i class="fas fa-lock me-2"></i> HOÀN TẤT ĐẶT HÀNG
+                    </button>
+                </form>
             </div>
 
-            <div class="total-row">
-                <span>Tổng cộng</span>
-                <span><%= currencyVN.format(total) %></span>
+            <div class="card-custom h-100">
+                <div class="section-header"><i class="fas fa-shopping-basket"></i> Đơn hàng (<%= displayItems.size()%>)</div>
+
+                <div style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
+                    <% for (Map<String, Object> item : displayItems) {%>
+                    <div class="summary-item">
+                        <img src="<%= item.get("image")%>" class="item-img" onerror="this.src='https://via.placeholder.com/60x90?text=No+Img'">
+                        
+                        <div class="item-info">
+                            <div class="item-name"><%= item.get("bookname")%></div>
+                            <div class="item-meta">Tác giả: <%= item.get("author")%></div>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="badge bg-light text-dark border">x<%= item.get("quantity")%></span>
+                                <span class="fw-bold text-primary"><%= currencyVN.format(item.get("subtotal"))%></span>
+                            </div>
+                        </div>
+                    </div>
+                    <% }%>
+                </div>
+
+                <div class="total-row">
+                    <span>Tổng cộng</span>
+                    <span><%= currencyVN.format(total)%></span>
+                </div>
             </div>
         </div>
-    </div>
 
-    <script>
-        function selectPayment(val, el) {
-            document.querySelectorAll('.payment-option').forEach(e => e.classList.remove('selected'));
-            el.classList.add('selected');
-            el.querySelector('input').checked = true;
-        }
-
-        function validateForm() {
-            const phone = document.getElementById('phone').value;
-            const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
-            
-            if (!phoneRegex.test(phone)) {
-                document.getElementById('phoneError').innerText = 'Số điện thoại không hợp lệ (10 số, đầu 03/05/07/08/09)';
-                return false;
+        <script>
+            function selectPayment(val, el) {
+                document.querySelectorAll('.payment-option').forEach(e => e.classList.remove('selected'));
+                el.classList.add('selected');
+                el.querySelector('input').checked = true;
             }
 
-            const method = document.querySelector('input[name="paymentMethod"]:checked').value;
-            const form = document.getElementById('checkoutForm');
-            
-            if (method === 'vnpay') {
-                form.action = 'VNPayServlet';
-            } else {
-                form.action = 'ProcessOrderServlet';
+            function validateForm() {
+                const phone = document.getElementById('phone').value;
+                const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
+
+                if (!phoneRegex.test(phone)) {
+                    document.getElementById('phoneError').innerText = 'Số điện thoại không hợp lệ (10 số, đầu 03/05/07/08/09)';
+                    return false;
+                }
+
+                const method = document.querySelector('input[name="paymentMethod"]:checked').value;
+                const form = document.getElementById('checkoutForm');
+
+                if (method === 'vnpay') {
+                    form.action = 'VNPayServlet';
+                } else {
+                    form.action = 'ProcessOrderServlet';
+                }
+                return true;
             }
-            return true;
-        }
-    </script>
-</body>
+        </script>
+    </body>
 </html>

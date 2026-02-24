@@ -1,12 +1,5 @@
 package controller;
 
-import java.io.PrintWriter;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,19 +14,32 @@ public class RemoveFromCartServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         HttpSession session = req.getSession();
         String userEmail = (String) session.getAttribute("userEmail");
-        if (userEmail == null) { resp.sendRedirect("login.jsp"); return; }
+        
+        if (userEmail == null) { 
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return; 
+        }
 
         try {
             int bookId = Integer.parseInt(req.getParameter("cartItemId"));
+            
             if (new CartDAO().removeFromCart(bookId, userEmail)) {
-                setAlert(session, "success", "Đã xóa", "Sản phẩm đã xóa khỏi giỏ.");
+                setAlert(session, "success", "Đã xóa", "Sản phẩm đã được xóa khỏi giỏ hàng.");
             } else {
-                setAlert(session, "error", "Lỗi", "Không thể xóa sản phẩm.");
+                setAlert(session, "error", "Lỗi", "Không thể xóa sản phẩm này.");
             }
-        } catch (NumberFormatException e) { setAlert(session, "error", "Lỗi", "Dữ liệu không hợp lệ."); }
-        resp.sendRedirect("cart.jsp");
+            
+            resp.setStatus(HttpServletResponse.SC_OK);
+            
+        } catch (NumberFormatException e) { 
+            setAlert(session, "error", "Lỗi", "Dữ liệu không hợp lệ."); 
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        }
     }
+
     private void setAlert(HttpSession s, String i, String t, String m) {
-        s.setAttribute("alertIcon", i); s.setAttribute("alertTitle", t); s.setAttribute("alertMessage", m);
+        s.setAttribute("alertIcon", i); 
+        s.setAttribute("alertTitle", t); 
+        s.setAttribute("alertMessage", m);
     }
 }

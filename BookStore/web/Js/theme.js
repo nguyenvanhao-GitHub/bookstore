@@ -2,7 +2,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const body = document.body;
   const toggle = document.getElementById("darkModeToggle");
 
-  // Áp dụng dark mode nếu đã lưu
   if (localStorage.getItem("darkMode") === "true") {
     body.classList.add("dark-mode");
     toggle.checked = true;

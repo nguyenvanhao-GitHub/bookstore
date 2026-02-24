@@ -13,6 +13,7 @@ import java.util.Base64;
 
 @WebServlet("/SignupServlet")
 public class SignupServlet extends HttpServlet {
+
     private static final long serialVersionUID = 1L;
 
     @Override
@@ -31,18 +32,15 @@ public class SignupServlet extends HttpServlet {
 
         UserDAO userDAO = new UserDAO();
 
-        // 1. Kiểm tra email tồn tại
         if (userDAO.checkEmailExistsInAllRoles(email)) {
             showAlert(response, "error", "Email đã tồn tại", "Vui lòng sử dụng email khác.", "signup.jsp");
             return;
         }
 
         try {
-            // 2. Hash mật khẩu
             String salt = generateSalt();
             String hashedPassword = hashPassword(password, salt);
 
-            // 3. Đăng ký người dùng
             boolean isRegistered = userDAO.registerUser(name, email, contact, gender, role, hashedPassword, salt);
 
             if (isRegistered) {

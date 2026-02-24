@@ -12,6 +12,7 @@ import java.sql.Timestamp;
 
 @WebServlet("/LoginServlet")
 public class LoginServlet extends HttpServlet {
+
     private static final long serialVersionUID = 1L;
 
     @Override
@@ -34,7 +35,6 @@ public class LoginServlet extends HttpServlet {
         User user = userDAO.login(email, password);
 
         if (user != null) {
-            // 1. Kiểm tra nếu đã bị khóa từ trước
             if ("Locked".equalsIgnoreCase(user.getStatus())) {
                 String reason = user.getLockReason();
                 String msg = "Tài khoản của bạn đã bị khóa.";
@@ -45,25 +45,22 @@ public class LoginServlet extends HttpServlet {
                 return;
             }
 
-            // 2. [MỚI] Kiểm tra thời gian không hoạt động (90 ngày)
             Timestamp lastLogin = user.getLastLogin();
             if (lastLogin != null) {
                 long diff = System.currentTimeMillis() - lastLogin.getTime();
-                long days = diff / (24 * 60 * 60 * 1000); // Đổi ra số ngày
+                long days = diff / (24 * 60 * 60 * 1000); 
 
                 if (days > 90) {
-                    // Tự động khóa
                     String reason = "Tự động khóa do không hoạt động quá 90 ngày.";
                     userDAO.lockAccount(user.getId(), reason);
-                    
-                    showAlert(response, "error", "Tài khoản bị khóa", 
-                        "Tài khoản đã bị khóa do không hoạt động trong " + days + " ngày.<br>Vui lòng liên hệ Admin để mở khóa.", 
-                        "login.jsp", true);
+
+                    showAlert(response, "error", "Tài khoản bị khóa",
+                            "Tài khoản đã bị khóa do không hoạt động trong " + days + " ngày.<br>Vui lòng liên hệ Admin để mở khóa.",
+                            "login.jsp", true);
                     return;
                 }
             }
 
-            // 3. Nếu mọi thứ OK -> Cập nhật Last Login & Vào hệ thống
             userDAO.updateLastLogin(user.getId());
 
             HttpSession session = request.getSession();
@@ -90,7 +87,7 @@ public class LoginServlet extends HttpServlet {
             }
 
             showAlert(response, "success", "Đăng nhập thành công!", "Chào mừng " + user.getName(), "index.jsp", false);
-            
+
         } else {
             showAlert(response, "error", "Lỗi đăng nhập", "Email hoặc mật khẩu không chính xác.", "login.jsp", true);
         }
@@ -120,10 +117,10 @@ public class LoginServlet extends HttpServlet {
         out.println("</body></html>");
         out.close();
     }
-    
+
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        super.doGet(request, response); 
+        super.doGet(request, response);
     }
 }

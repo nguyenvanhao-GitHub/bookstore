@@ -19,7 +19,6 @@ public class OrderDAO {
             ps.setString(1, orderId);
             ps.setString(2, userEmail);
 
-            // Trả về true nếu có dòng được update (tức là hủy thành công)
             return ps.executeUpdate() > 0;
 
         } catch (Exception e) {
@@ -50,7 +49,6 @@ public class OrderDAO {
             conn = db.getConnection();
             conn.setAutoCommit(false);
 
-            // 1. Insert Order
             String sql = "INSERT INTO orders (id, customer_name, email, phone, address, city, state, zipcode, books, total_amount, payment_method, status, order_date) "
                     + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Direct Order', 'pending', NOW())";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -67,7 +65,6 @@ public class OrderDAO {
                 ps.executeUpdate();
             }
 
-            // 2. Clear Cart
             String clearCart = "DELETE FROM cart WHERE user_email = ?";
             try (PreparedStatement ps = conn.prepareStatement(clearCart)) {
                 ps.setString(1, userEmail);
@@ -96,7 +93,6 @@ public class OrderDAO {
         return false;
     }
 
-// 1. Lưu đơn hàng từ VNPay (Status = paid)
     public boolean saveOrderFromVNPay(String orderId, String fullName, String email,
             String phone, String address, String city, String state, String zipCode,
             String books, double total, String transactionNo) {
@@ -104,9 +100,8 @@ public class OrderDAO {
         Connection conn = null;
         try {
             conn = db.getConnection();
-            conn.setAutoCommit(false); // Transaction
+            conn.setAutoCommit(false);
 
-            // Insert Order
             String sql = "INSERT INTO orders (id, customer_name, email, phone, address, "
                     + "city, state, zipcode, books, total_amount, payment_method, status, "
                     + "transaction_id, order_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'VNPay', 'paid', ?, NOW())";
@@ -125,7 +120,6 @@ public class OrderDAO {
                 ps.executeUpdate();
             }
 
-            // Xóa giỏ hàng
             String clearCart = "DELETE FROM cart WHERE user_email = ?";
             try (PreparedStatement ps = conn.prepareStatement(clearCart)) {
                 ps.setString(1, email);
@@ -154,32 +148,6 @@ public class OrderDAO {
         return false;
     }
 
-// 2. Cập nhật trạng thái đơn hàng (Admin)
-   public boolean updateOrderStatus(String orderId, String newStatus) {
-    // ⚠️ LƯU Ý: Nếu cột 'cancelled_at' chưa tồn tại, bạn cần thêm nó vào bảng 'orders'
-    // ALTER TABLE orders ADD COLUMN cancelled_at datetime DEFAULT NULL;
-    
-    String sql = "UPDATE orders SET status = ?, cancelled_at = NOW() WHERE id = ? AND status='pending'";
-    
-    try (Connection conn = db.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-        
-        ps.setString(1, newStatus);
-        ps.setString(2, orderId);
-        
-        int rowsAffected = ps.executeUpdate();
-        
-        // Trả về true nếu có 1 hàng bị ảnh hưởng (cập nhật thành công)
-        return rowsAffected > 0;
-        
-    } catch (Exception e) {
-        System.err.println("Error updating status for ID: " + orderId);
-        e.printStackTrace();
-        return false;
-    }
-}
-
-// 3. Lấy thông tin cơ bản đơn hàng (để gửi mail status)
     public Map<String, String> getOrderBasicInfo(String orderId) {
         Map<String, String> info = new HashMap<>();
         String sql = "SELECT email, customer_name, status FROM orders WHERE id = ?";
@@ -218,9 +186,8 @@ public class OrderDAO {
         return list;
     }
 
-    // Tìm hàm insertOrder và sửa tên cột
-    public boolean insertOrder(Order order) throws ClassNotFoundException {
-        // Sửa 'zipCode' thành 'zipcode' để khớp với database
+    public boolean insertOrder(Order order) {
+
         String sql = "INSERT INTO orders (id, customer_name, email, phone, address, city, state, zipcode, "
                 + "books, total_amount, payment_method, status, transaction_id, order_date) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
@@ -233,7 +200,7 @@ public class OrderDAO {
             ps.setString(5, order.getAddress());
             ps.setString(6, order.getCity());
             ps.setString(7, order.getState());
-            ps.setString(8, order.getZipCode()); // Getter Java vẫn là getZipCode, nhưng cột DB là zipcode
+            ps.setString(8, order.getZipCode());
             ps.setString(9, order.getBooks());
             ps.setDouble(10, order.getTotalAmount());
             ps.setString(11, order.getPaymentMethod());
@@ -241,7 +208,7 @@ public class OrderDAO {
             ps.setString(13, order.getTransactionId());
 
             return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
@@ -261,28 +228,36 @@ public class OrderDAO {
         order.setBooks(info.get("books"));
         order.setTotalAmount(Double.parseDouble(info.get("total")));
         order.setPaymentMethod("VNPay");
-        order.setStatus("paid"); // Đã thanh toán
+        order.setStatus("paid");
         order.setTransactionId(transactionId);
 
         return insertOrder(order);
     }
 
-    public List<entity.Order> getAllOrders(int start, int total) {
-        List<entity.Order> list = new ArrayList<>();
+    public List<Order> getAllOrders(int start, int total) {
+        List<Order> list = new ArrayList<>();
         String sql = "SELECT * FROM orders ORDER BY order_date DESC LIMIT ?, ?";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, start);
             ps.setInt(2, total);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                entity.Order o = new entity.Order();
+                Order o = new Order();
                 o.setId(rs.getString("id"));
                 o.setCustomerName(rs.getString("customer_name"));
+                o.setEmail(rs.getString("email"));
+                o.setPhone(rs.getString("phone"));
+                o.setAddress(rs.getString("address"));
+                o.setCity(rs.getString("city"));
+                o.setState(rs.getString("state"));
+                o.setZipCode(rs.getString("zipcode"));
                 o.setBooks(rs.getString("books"));
                 o.setTotalAmount(rs.getDouble("total_amount"));
                 o.setPaymentMethod(rs.getString("payment_method"));
                 o.setStatus(rs.getString("status"));
+                o.setTransactionId(rs.getString("transaction_id"));
                 o.setOrderDate(rs.getTimestamp("order_date"));
+
                 list.add(o);
             }
         } catch (Exception e) {
@@ -329,18 +304,15 @@ public class OrderDAO {
         order.setBooks(rs.getString("books"));
         order.setTotalAmount(rs.getDouble("total_amount"));
         order.setStatus(rs.getString("status"));
-
-        // MỚI: Mapping đầy đủ
         order.setPaymentMethod(rs.getString("payment_method"));
         order.setTransactionId(rs.getString("transaction_id"));
         order.setOrderDate(rs.getTimestamp("order_date"));
         return order;
     }
 
-    // Thêm vào class OrderDAO.java (Giả định có OrderDetail DTO)
     public List<OrderDetailDTO> getOrderDetailsForCancellation(int orderId) {
         List<OrderDetailDTO> details = new ArrayList<>();
-        // Dựa trên cấu trúc DB của bạn: Phải JOIN Order và OrderDetail
+
         String sql = "SELECT od.book_id, od.quantity, o.status FROM order_detail od JOIN orders o ON od.order_id = o.id WHERE od.order_id = ?";
 
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -348,11 +320,10 @@ public class OrderDAO {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                // Giả định OrderDetailDTO có bookId, quantity, và status (tạm thời)
                 OrderDetailDTO detail = new OrderDetailDTO();
                 detail.setBookId(rs.getInt("book_id"));
                 detail.setQuantity(rs.getInt("quantity"));
-                detail.setOrderStatus(rs.getString("status")); // Lấy status để kiểm tra ở Servlet
+                detail.setOrderStatus(rs.getString("status"));
                 details.add(detail);
             }
         } catch (Exception e) {
@@ -361,64 +332,55 @@ public class OrderDAO {
         return details;
     }
 
-    public boolean updateOrderStatus(int orderId, String newStatus) {
-        String sql = "UPDATE orders SET status = ?, cancelled_at = NOW() WHERE id = ?";
-        try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+    public boolean updateOrderStatus(String orderId, String newStatus) {
+        String sql = "UPDATE orders SET status = ? WHERE id = ?";
+
+        if ("cancelled".equalsIgnoreCase(newStatus)) {
+            sql = "UPDATE orders SET status = ?, cancelled_at = NOW() WHERE id = ?";
+        }
+
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, newStatus);
-            ps.setInt(2, orderId);
+            ps.setString(2, orderId);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
         }
+        return false;
     }
-    
 
-    // Trong class OrderDAO.java
-
-public String getOrderStatus(String orderId) {
-    String status = null;
-    // Lấy kết nối DB từ context (giả định db.getConnection() tồn tại)
-    String sql = "SELECT status FROM orders WHERE id = ?";
-    
-    try (Connection conn = db.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-        
-        ps.setString(1, orderId);
-        ResultSet rs = ps.executeQuery();
-        
-        if (rs.next()) {
-            status = rs.getString("status");
+    public String getOrderStatus(String orderId) {
+        String sql = "SELECT status FROM orders WHERE id = ?";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, orderId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("status");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        
-    } catch (Exception e) {
-        System.err.println("Error fetching order status for ID: " + orderId);
-        e.printStackTrace();
+        return null;
     }
-    return status;
-}
-// Trong class OrderDAO.java
 
-public String getBooksSummary(String orderId) {
-    String booksSummary = null;
-    String sql = "SELECT books FROM orders WHERE id = ?";
-    
-    try (Connection conn = db.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-        
-        ps.setString(1, orderId);
-        ResultSet rs = ps.executeQuery();
-        
-        if (rs.next()) {
-            booksSummary = rs.getString("books");
+    public String getBooksSummary(String orderId) {
+        String booksSummary = null;
+        String sql = "SELECT books FROM orders WHERE id = ?";
+
+        try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, orderId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                booksSummary = rs.getString("books");
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error fetching book summary for ID: " + orderId);
+            e.printStackTrace();
         }
-        
-    } catch (Exception e) {
-        System.err.println("Error fetching book summary for ID: " + orderId);
-        e.printStackTrace();
+        return booksSummary;
     }
-    return booksSummary;
-}
-
 
 }

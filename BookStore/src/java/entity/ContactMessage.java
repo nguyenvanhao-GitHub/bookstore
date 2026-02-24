@@ -8,7 +8,6 @@ public class ContactMessage {
     private String subject;
     private String message;
     private Timestamp submittedAt;
-    // Đã xóa private boolean isReplied;
 
     public ContactMessage() {}
 
@@ -21,7 +20,6 @@ public class ContactMessage {
         this.submittedAt = submittedAt;
     }
 
-    // Getters và Setters (Xóa getter/setter của isReplied)
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
     public String getName() { return name; }

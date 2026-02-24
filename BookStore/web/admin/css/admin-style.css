@@ -16,8 +16,6 @@
     --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
     --transition: all 0.3s ease;
 }
-/* #f59e0b 
-  #f59e0b-yellow*/
 /* Sidebar Styles */
 .admin-sidebar {
     background: linear-gradient(to bottom, var(--dark-bg), var(--secondary-color));

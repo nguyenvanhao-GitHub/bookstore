@@ -12,6 +12,7 @@ import java.util.*;
 
 @WebServlet("/VNPayServlet")
 public class VNPayServlet extends HttpServlet {
+
     private static final long serialVersionUID = 1L;
 
     @Override
@@ -22,18 +23,18 @@ public class VNPayServlet extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
 
         try {
-            // 1. Lấy và kiểm tra tổng tiền
+            //Lấy và kiểm tra tổng tiền
             String totalStr = request.getParameter("total");
             if (totalStr == null || totalStr.isEmpty()) {
                 response.sendRedirect("cart.jsp?error=missing_total");
                 return;
             }
-            
+
             // Chuyển đổi tiền tệ (VNPay yêu cầu đơn vị là đồng, không có decimal)
             double total = Double.parseDouble(totalStr);
-            long amount = (long) (total); 
+            long amount = (long) (total);
 
-            // 2. Lấy thông tin giao hàng
+            //Lấy thông tin giao hàng
             String fullName = request.getParameter("fullName");
             String email = request.getParameter("email");
             String phone = request.getParameter("phone");
@@ -43,10 +44,10 @@ public class VNPayServlet extends HttpServlet {
             String zip = request.getParameter("zipCode");
             String books = request.getParameter("books");
 
-            // 3. Tạo mã đơn hàng (Unique)
+            //Tạo mã đơn hàng (Unique)
             String orderId = VNPayConfig.getRandomNumber(8);
 
-            // 4. Lưu thông tin vào Session để dùng lại sau khi thanh toán xong
+            //Lưu thông tin vào Session để dùng lại sau khi thanh toán xong
             Map<String, String> orderInfo = new HashMap<>();
             orderInfo.put("orderId", orderId);
             orderInfo.put("fullName", fullName != null ? fullName : "");
@@ -62,11 +63,10 @@ public class VNPayServlet extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("orderInfo", orderInfo);
 
-            // 5. Tạo URL thanh toán VNPay
+            //Tạo URL thanh toán VNPay
             String ipAddress = VNPayConfig.getIpAddress(request);
             String paymentUrl = VNPayConfig.createPaymentUrl(orderId, amount, "Thanh toan don hang " + orderId, ipAddress);
 
-            // 6. Chuyển hướng
             response.sendRedirect(paymentUrl);
 
         } catch (Exception e) {

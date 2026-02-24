@@ -1,14 +1,11 @@
-// Initialize DataTable
 let userTable;
 
-// Function to format date
 function formatDate(dateString) {
     if (!dateString) return 'Never';
     const date = new Date(dateString);
     return date.toLocaleString();
 }
 
-// Function to update statistics cards
 function updateStatistics(stats) {
     document.querySelector('.stats-card:nth-child(1) h3').textContent = stats.total || 0;
     document.querySelector('.stats-card:nth-child(2) h3').textContent = stats.user || 0;
@@ -16,7 +13,6 @@ function updateStatistics(stats) {
     document.querySelector('.stats-card:nth-child(4) h3').textContent = stats.admin || 0;
 }
 
-// Function to load users
 function loadUsers() {
     fetch('../UserManagementServlet?action=getUsers')
         .then(response => response.json())
@@ -55,7 +51,6 @@ function loadUsers() {
                 tableBody.insertAdjacentHTML('beforeend', row);
             });
             
-            // Initialize DataTable
             userTable = new DataTable('.admin-table', {
                 order: [[3, 'asc'], [1, 'asc']],
                 pageLength: 10,
@@ -82,8 +77,6 @@ function loadUsers() {
         });
 }
 
-// Load users when page loads
 document.addEventListener('DOMContentLoaded', loadUsers);
 
-// Refresh data every 5 minutes
 setInterval(loadUsers, 300000);

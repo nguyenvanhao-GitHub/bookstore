@@ -30,7 +30,7 @@ public class CartDAO {
             // Bắt đầu Transaction
             conn.setAutoCommit(false);
 
-            // 1. Kiểm tra tồn kho (Stock)
+            //Kiểm tra tồn kho (Stock)
             String sqlCheckStock = "SELECT stock FROM books WHERE id = ?";
             psCheckStock = conn.prepareStatement(sqlCheckStock);
             psCheckStock.setInt(1, item.getBookId());
@@ -48,7 +48,7 @@ public class CartDAO {
                 return "Sản phẩm này hiện đã hết hàng.";
             }
 
-            // 2. Kiểm tra số lượng hiện tại trong giỏ của User
+            //Kiểm tra số lượng hiện tại trong giỏ của User
             String sqlCheckCart = "SELECT quantity FROM cart WHERE book_id = ? AND user_email = ?";
             psCheckCart = conn.prepareStatement(sqlCheckCart);
             psCheckCart.setInt(1, item.getBookId());
@@ -60,12 +60,11 @@ public class CartDAO {
                 currentCartQuantity = rs.getInt("quantity");
             }
 
-            // 3. Validate logic: Tổng mua > Tồn kho?
+            // Validate logic: Tổng mua > Tồn kho?
             if (currentCartQuantity + item.getQuantity() > currentStock) {
                 return "Không thể thêm số lượng này. Kho chỉ còn: " + currentStock;
             }
 
-            // 4. Insert hoặc Update Cart
             String sqlInsert = "INSERT INTO cart (book_id, user_email, bookname, author, publisher_email, price, image, quantity) "
                     + "VALUES (?, ?, ?, ?, ?, ?, ?, ?) "
                     + "ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity), updated_at = NOW()";
@@ -81,7 +80,7 @@ public class CartDAO {
             psInsert.setInt(8, item.getQuantity());
             psInsert.executeUpdate();
 
-            // 5. Trừ kho (Update Stock) - Theo logic gốc của bạn
+            // Trừ kho (Update Stock) - Theo logic gốc của bạn
             String sqlUpdateStock = "UPDATE books SET stock = stock - ? WHERE id = ? AND stock >= ?";
             psUpdateStock = conn.prepareStatement(sqlUpdateStock);
             psUpdateStock.setInt(1, item.getQuantity());
@@ -157,7 +156,7 @@ public class CartDAO {
             conn = db.getConnection();
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
-            // 1. Lấy số lượng cần trả lại kho
+            // Lấy số lượng cần trả lại kho
             int qty = 0;
             String getQtySql = "SELECT quantity FROM cart WHERE book_id=? AND user_email=?";
             try (PreparedStatement ps = conn.prepareStatement(getQtySql)) {
@@ -169,7 +168,7 @@ public class CartDAO {
                 }
             }
 
-            // 2. Xóa khỏi giỏ
+            //Xóa khỏi giỏ
             String delSql = "DELETE FROM cart WHERE book_id=? AND user_email=?";
             try (PreparedStatement ps = conn.prepareStatement(delSql)) {
                 ps.setInt(1, bookId);
@@ -177,7 +176,7 @@ public class CartDAO {
                 ps.executeUpdate();
             }
 
-            // 3. Trả lại kho
+            // Trả lại kho
             if (qty > 0) {
                 String stockSql = "UPDATE books SET stock = stock + ? WHERE id = ?";
                 try (PreparedStatement ps = conn.prepareStatement(stockSql)) {
@@ -215,7 +214,7 @@ public class CartDAO {
             conn = db.getConnection();
             conn.setAutoCommit(false);
 
-            // 1. Lấy số lượng cũ
+            // Lấy số lượng cũ
             int oldQty = 0;
             try (PreparedStatement ps = conn.prepareStatement("SELECT quantity FROM cart WHERE book_id=? AND user_email=?")) {
                 ps.setInt(1, bookId);
@@ -228,7 +227,7 @@ public class CartDAO {
                 }
             }
 
-            // 2. Check tồn kho
+            // Check tồn kho
             int currentStock = 0;
             try (PreparedStatement ps = conn.prepareStatement("SELECT stock FROM books WHERE id=?")) {
                 ps.setInt(1, bookId);
@@ -243,7 +242,6 @@ public class CartDAO {
                 return "OUT_OF_STOCK";
             }
 
-            // 3. Update Cart
             try (PreparedStatement ps = conn.prepareStatement("UPDATE cart SET quantity=?, updated_at=NOW() WHERE book_id=? AND user_email=?")) {
                 ps.setInt(1, newQuantity);
                 ps.setInt(2, bookId);
@@ -251,7 +249,6 @@ public class CartDAO {
                 ps.executeUpdate();
             }
 
-            // 4. Update Stock
             try (PreparedStatement ps = conn.prepareStatement("UPDATE books SET stock = stock + ? WHERE id=?")) {
                 ps.setInt(1, diff);
                 ps.setInt(2, bookId);
@@ -282,7 +279,7 @@ public class CartDAO {
 
     public List<CartItem> getCartItems(String userEmail) {
         List<CartItem> list = new ArrayList<>();
-        // Thêm updated_at vào query
+
         String sql = "SELECT book_id, bookname, author, price, image, quantity, created_at, updated_at "
                 + "FROM cart WHERE user_email = ? ORDER BY created_at DESC";
 
@@ -292,7 +289,6 @@ public class CartDAO {
 
             while (rs.next()) {
                 CartItem item = new CartItem();
-                // Không set ID
                 item.setBookId(rs.getInt("book_id"));
                 item.setBookName(rs.getString("bookname"));
                 item.setAuthor(rs.getString("author"));

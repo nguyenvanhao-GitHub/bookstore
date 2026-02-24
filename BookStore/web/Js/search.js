@@ -1,14 +1,7 @@
-/**
- * ============================================
- * E-BOOKS ADVANCED SEARCH SYSTEM
- * Desktop & Mobile AJAX Search
- * Version: 2.1 (Fixed for MVC Entity)
- * ============================================
- */
 
 'use strict';
 
-// ==================== CONFIGURATION ====================
+
 const SEARCH_CONFIG = {
     debounceDelay: 300,
     minSearchLength: 1,
@@ -16,15 +9,15 @@ const SEARCH_CONFIG = {
     servletUrl: 'SearchServlet'
 };
 
-// ==================== STATE MANAGEMENT ====================
+
 const searchState = {
-    desktop: { timeout: null, input: null, results: null },
-    mobile: { timeout: null, input: null, results: null },
+    desktop: {timeout: null, input: null, results: null},
+    mobile: {timeout: null, input: null, results: null},
     currentRequest: null
 };
 
-// ==================== INITIALIZATION ====================
-document.addEventListener('DOMContentLoaded', function() {
+
+document.addEventListener('DOMContentLoaded', function () {
     initializeSearch();
 });
 
@@ -32,8 +25,7 @@ function initializeSearch() {
     searchState.desktop.input = document.getElementById('searchInput');
     searchState.desktop.results = document.getElementById('searchResults');
     searchState.mobile.input = document.getElementById('searchInputMobile');
-    
-    // Setup Mobile Results Container
+
     if (searchState.mobile.input) {
         let container = document.getElementById('searchResultsMobile');
         if (!container) {
@@ -44,19 +36,20 @@ function initializeSearch() {
         }
         searchState.mobile.results = container;
     }
-    
-    // Setup Listeners
-    if (searchState.desktop.input) setupSearchBox('desktop');
-    if (searchState.mobile.input) setupSearchBox('mobile');
-    
+
+    if (searchState.desktop.input)
+        setupSearchBox('desktop');
+    if (searchState.mobile.input)
+        setupSearchBox('mobile');
+
     setupClickOutsideHandler();
 }
 
 function setupSearchBox(type) {
     const state = searchState[type];
-    
+
     state.input.addEventListener('input', (e) => handleSearchInput(e.target.value.trim(), type));
-    
+
     state.input.addEventListener('focus', (e) => {
         if (e.target.value.trim().length >= SEARCH_CONFIG.minSearchLength) {
             performSearch(e.target.value.trim(), type);
@@ -66,7 +59,8 @@ function setupSearchBox(type) {
     state.input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            if (state.input.value.trim()) redirectToSearchPage(state.input.value.trim());
+            if (state.input.value.trim())
+                redirectToSearchPage(state.input.value.trim());
         }
     });
 }
@@ -74,35 +68,35 @@ function setupSearchBox(type) {
 function handleSearchInput(query, type) {
     const state = searchState[type];
     clearTimeout(state.timeout);
-    
+
     if (query.length < SEARCH_CONFIG.minSearchLength) {
         hideResults(type);
         return;
     }
-    
+
     showLoadingState(type);
-    
+
     state.timeout = setTimeout(() => {
         performSearch(query, type);
     }, SEARCH_CONFIG.debounceDelay);
 }
 
-// ==================== AJAX SEARCH ====================
 async function performSearch(query, type) {
     try {
-        if (searchState.currentRequest) searchState.currentRequest.abort();
-        
+        if (searchState.currentRequest)
+            searchState.currentRequest.abort();
+
         const controller = new AbortController();
         searchState.currentRequest = controller;
-        
+
         const response = await fetch(
-            `${SEARCH_CONFIG.servletUrl}?query=${encodeURIComponent(query)}`,
-            { signal: controller.signal }
+                `${SEARCH_CONFIG.servletUrl}?query=${encodeURIComponent(query)}`,
+                {signal: controller.signal}
         );
-        
+
         const books = await response.json();
         displayResults(books, type);
-        
+
     } catch (error) {
         if (error.name !== 'AbortError') {
             console.error('Search error:', error);
@@ -111,31 +105,29 @@ async function performSearch(query, type) {
     }
 }
 
-// ==================== DISPLAY RESULTS ====================
 function displayResults(books, type) {
     const state = searchState[type];
-    if (!state.results) return;
-    
+    if (!state.results)
+        return;
+
     if (!books || books.length === 0) {
         showNoResults(type);
         return;
     }
-    
-    // Tạo HTML từ mảng sách
+
     const html = books.map(book => createBookHTML(book)).join('');
     state.results.innerHTML = html;
     state.results.classList.add('active');
 }
 
 function createBookHTML(book) {
-    // Logic giá tiền: Nhân 300 theo quy ước dự án
+
     const priceVND = parseFloat(book.price) * 300;
     const formattedPrice = priceVND.toLocaleString('vi-VN') + '₫';
-    
-    // LƯU Ý QUAN TRỌNG: Sử dụng book.name thay vì book.title để khớp với Entity Book
+
     const safeName = escapeHTML(book.name);
     const imageUrl = book.image && book.image.trim() !== '' ? book.image : 'images/default-book.jpg';
-    
+
     return `
         <div class="search-result-item" onclick="selectBook('${safeName.replace(/'/g, "\\'")}', ${book.id})">
             <img src="${imageUrl}" 
@@ -154,7 +146,6 @@ function createBookHTML(book) {
     `;
 }
 
-// ==================== UI HELPERS ====================
 function showLoadingState(type) {
     const state = searchState[type];
     if (state.results) {
@@ -181,24 +172,27 @@ function showErrorState(type) {
 
 function hideResults(type) {
     const state = searchState[type];
-    if (state.results) state.results.classList.remove('active');
+    if (state.results)
+        state.results.classList.remove('active');
 }
 
 function escapeHTML(text) {
-    if (!text) return "";
-    return text.replace(/[&<>"']/g, function(m) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+    if (!text)
+        return "";
+    return text.replace(/[&<>"']/g, function (m) {
+        return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'}[m];
     });
 }
 
-// ==================== GLOBAL ACTIONS ====================
-window.selectBook = function(name, bookId) {
-    if (searchState.desktop.input) searchState.desktop.input.value = name;
-    if (searchState.mobile.input) searchState.mobile.input.value = name;
-    
+window.selectBook = function (name, bookId) {
+    if (searchState.desktop.input)
+        searchState.desktop.input.value = name;
+    if (searchState.mobile.input)
+        searchState.mobile.input.value = name;
+
     hideResults('desktop');
     hideResults('mobile');
-    
+
     window.location.href = `book-detail.jsp?id=${bookId}`;
 };
 
@@ -208,7 +202,9 @@ function redirectToSearchPage(query) {
 
 function setupClickOutsideHandler() {
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.search-container')) hideResults('desktop');
-        if (!e.target.closest('.mobile-search')) hideResults('mobile');
+        if (!e.target.closest('.search-container'))
+            hideResults('desktop');
+        if (!e.target.closest('.mobile-search'))
+            hideResults('mobile');
     });
 }

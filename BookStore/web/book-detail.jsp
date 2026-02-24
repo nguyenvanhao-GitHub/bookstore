@@ -5,11 +5,10 @@
 <%@ page import="utils.LanguageHelper" %>
 
 <%
-    // 1. Thiết lập định dạng tiền tệ
+
     Locale localeVN = new Locale("vi", "VN");
     NumberFormat currencyVN = NumberFormat.getCurrencyInstance(localeVN);
 
-    // 2. Lấy ID sách từ request (Logic kiểm tra giữ nguyên)
     String bookIdParam = request.getParameter("id");
     if (bookIdParam == null || bookIdParam.isEmpty()) {
         response.sendRedirect("categories.jsp");
@@ -24,7 +23,6 @@
         return;
     }
 
-    // 3. Sử dụng DAO để lấy thông tin sách (Logic giữ nguyên)
     BookDAO bookDAO = new BookDAO();
     Book book = bookDAO.getBookById(bookId);
 
@@ -33,13 +31,11 @@
         return;
     }
 
-    // 4. Sử dụng DAO để lấy thông tin đánh giá (Logic giữ nguyên)
     ReviewDAO reviewDAO = new ReviewDAO();
     double avgRating = reviewDAO.getAverageRating(bookId);
     int totalReviews = reviewDAO.getTotalReviews(bookId);
     List<Review> reviews = reviewDAO.getReviewsByBookId(bookId);
 
-    // 5. Chuẩn bị dữ liệu hiển thị (Logic giữ nguyên)
     String title = book.getName();
     String author = book.getAuthor();
     String category = book.getCategory();
@@ -59,7 +55,7 @@
 
 <style>
 
-    /* Giữ nguyên CSS của bạn */
+
 
     :root {
 
@@ -1101,7 +1097,7 @@
                         <% if (stock > 0) {%>
                         <span class="stock-badge in-stock">
                             <i class="fas fa-check-circle"></i>
-                               Còn hàng (<%= stock %> cuốn)
+                            <%= LanguageHelper.getText(request, "book.instock", stock)%>
 
                         </span>
                         <% } else {%>
@@ -1170,7 +1166,7 @@
                                 }
                             %>
                         </div>
-                            <div class="rating-count"><%= totalReviews %> đánh giá</div>
+                        <div class="rating-count"><%= LanguageHelper.getText(request, "rating.total", totalReviews)%></div>
                     </div>
                 </div>
             </div>
@@ -1210,7 +1206,6 @@
                     if (reviews != null && !reviews.isEmpty()) {
                         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
                         for (Review r : reviews) {
-                            // Logic che email (giữ nguyên)
                             String reviewerEmail = r.getUserEmail();
                             String maskedEmail = "Anonymous";
                             if (reviewerEmail != null && reviewerEmail.contains("@")) {
@@ -1255,7 +1250,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 
-        // Validate form trước khi submit (Sử dụng keys)
         function validateReviewForm() {
             const rating = document.querySelector('input[name="rating"]:checked');
             const comment = document.getElementById('reviewComment').value.trim();
@@ -1282,7 +1276,6 @@
             return true;
         }
 
-        // Image modal (Giữ nguyên)
         document.getElementById("bookImage").addEventListener("click", function () {
             let modal = document.getElementById("imageModal");
             let modalImg = document.getElementById("fullImage");
@@ -1300,8 +1293,6 @@
                 modal.style.display = "none";
             }
         };
-
-        // Star rating interaction
 
         const starRatingContainer = document.querySelector('.star-rating');
 
@@ -1363,7 +1354,6 @@
 
         }
 
-        // Wishlist AJAX (Cần đảm bảo Swal.fire dùng keys)
         function addToWishlist(bookId) {
             fetch("AddToWishlistServlet", {
                 method: "POST",
@@ -1388,7 +1378,6 @@
                     });
         }
 
-        // Cart AJAX (Cần đảm bảo Swal.fire dùng keys)
         document.getElementById('addToCartForm').addEventListener('submit', function (e) {
             e.preventDefault();
             const formData = new FormData(this);
@@ -1435,8 +1424,37 @@
                         Swal.fire({
                             icon: 'error',
                             title: '<%= LanguageHelper.getText(request, "error.title")%>',
-                            text: '<%= LanguageHelper.getText(request, "msg.error.general")%>' // Dùng key lỗi chung
+                            text: '<%= LanguageHelper.getText(request, "error.general")%>' // Dùng key lỗi chung
                         });
                     });
+        });
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (urlParams.has('reviewSuccess')) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '<%= LanguageHelper.getText(request, "book.review.success.title")%>',
+                    text: '<%= LanguageHelper.getText(request, "book.review.success.text")%>',
+                    confirmButtonColor: '#16a34a',
+                    timer: 3000
+                }).then(() => {
+
+                    const newUrl = window.location.pathname + "?id=" + urlParams.get('id');
+                    window.history.replaceState(null, null, newUrl);
+                });
+            }
+
+
+            if (urlParams.has('reviewError')) {
+                Swal.fire({
+                    icon: 'error',
+                    title: '<%= LanguageHelper.getText(request, "error.title")%>',
+                    text: '<%= LanguageHelper.getText(request, "book.review.error.text")%>',
+                    confirmButtonColor: '#dc2626'
+                });
+            }
         });
 </script>

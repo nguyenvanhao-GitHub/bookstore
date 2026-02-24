@@ -1,8 +1,7 @@
-// File: java/dao/AdminDAO.java
 package dao;
 
 import context.DBContext;
-import entity.Admin; // Import entity Admin
+import entity.Admin; 
 import java.sql.*;
 import java.util.*;
 import java.security.MessageDigest;
@@ -29,12 +28,12 @@ public class AdminDAO {
 
                 // **LOGIC ĐÃ SỬA: Xử lý cả trường hợp có salt và không có salt**
                 if (salt != null && !salt.trim().isEmpty()) {
-                    // 1. Kiểm tra mật khẩu (Sử dụng Salted Hash)
+                    // Kiểm tra mật khẩu (Sử dụng Salted Hash)
                     if (verifyPassword(password, salt, storedPass)) {
                         isVerified = true;
                     }
                 } else {
-                    // 2. Kiểm tra mật khẩu (Dạng Plaintext - Không khuyến khích, nhưng cần cho dữ liệu cũ)
+                    // Kiểm tra mật khẩu (Dạng Plaintext - Không khuyến khích, nhưng cần cho dữ liệu cũ)
                     if (password.equals(storedPass)) {
                         isVerified = true;
                     }
@@ -54,7 +53,7 @@ public class AdminDAO {
                     admin.setLockedAt(rs.getTimestamp("locked_at"));
                     admin.setLastLogout(rs.getTimestamp("last_logout"));
 
-                    // 3. Nếu ACTIVE, thì update Last Login
+                    // Nếu ACTIVE, thì update Last Login
                     if ("Active".equalsIgnoreCase(status)) {
                         updateLastLogin(email); // Chỉ update khi active login
                     }
@@ -106,7 +105,7 @@ public class AdminDAO {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         md.update(salt.getBytes());
         // LƯU Ý: Nếu DB lưu ở dạng hex string, không dùng Base64.getEncoder().encodeToString()
-        // Nhưng tôi giữ lại logic Base64 theo mã bạn cung cấp.
+     
         return Base64.getEncoder().encodeToString(md.digest(password.getBytes()));
     }
 
@@ -223,21 +222,19 @@ public class AdminDAO {
         }
         return null;
     }
-    
-    // [MỚI] 1. Lấy doanh thu 12 tháng của năm hiện tại
+
+    // Lấy doanh thu 12 tháng của năm hiện tại
     public List<Double> getMonthlyRevenueCurrentYear() {
         // Tạo list 12 phần tử có giá trị 0.0
         List<Double> list = new ArrayList<>(Collections.nCopies(12, 0.0));
-        
+
         // Chỉ tính đơn hàng đã giao (delivered) hoặc đã thanh toán (paid)
-        String sql = "SELECT MONTH(order_date) as month, SUM(total_amount) as total " +
-                     "FROM orders WHERE YEAR(order_date) = YEAR(CURDATE()) " +
-                     "AND status IN ('delivered', 'paid') " +
-                     "GROUP BY MONTH(order_date)";
-                     
-        try (Connection conn = db.getConnection(); 
-             Statement st = conn.createStatement(); 
-             ResultSet rs = st.executeQuery(sql)) {
+        String sql = "SELECT MONTH(order_date) as month, SUM(total_amount) as total "
+                + "FROM orders WHERE YEAR(order_date) = YEAR(CURDATE()) "
+                + "AND status IN ('delivered', 'paid') "
+                + "GROUP BY MONTH(order_date)";
+
+        try (Connection conn = db.getConnection(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 int month = rs.getInt("month");
                 double total = rs.getDouble("total");
@@ -252,24 +249,24 @@ public class AdminDAO {
         return list;
     }
 
-    // [MỚI] 2. Lấy số lượng đơn hàng theo từng trạng thái (Pending, Delivered, Cancelled)
+    //Lấy số lượng đơn hàng theo từng trạng thái (Pending, Delivered, Cancelled)
     public Map<String, Integer> getOrderStatusCounts() {
         Map<String, Integer> map = new HashMap<>();
         // Khởi tạo giá trị mặc định để tránh null
         map.put("pending", 0);
         map.put("delivered", 0);
         map.put("cancelled", 0);
-        
+
         String sql = "SELECT status, COUNT(*) as count FROM orders GROUP BY status";
-        
-        try (Connection conn = db.getConnection(); 
-             Statement st = conn.createStatement(); 
-             ResultSet rs = st.executeQuery(sql)) {
+
+        try (Connection conn = db.getConnection(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 String status = rs.getString("status");
                 int count = rs.getInt("count");
                 // Chuẩn hóa key về chữ thường để dễ xử lý
-                if (status != null) map.put(status.toLowerCase(), count);
+                if (status != null) {
+                    map.put(status.toLowerCase(), count);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

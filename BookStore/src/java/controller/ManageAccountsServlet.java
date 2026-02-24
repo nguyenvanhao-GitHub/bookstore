@@ -59,7 +59,6 @@ public class ManageAccountsServlet extends HttpServlet {
                         String hash = hashPassword(newPass, salt);
                         
                         if (dao.resetPassword(targetTable, id, hash, salt)) {
-                            // Gửi email
                             new Thread(() -> {
                                 try {
                                     EmailUtils.sendEmail(email, "Cấp lại mật khẩu - E-Books", "Mật khẩu mới của bạn là: " + newPass);
@@ -90,7 +89,7 @@ public class ManageAccountsServlet extends HttpServlet {
         response.sendRedirect("admin/users.jsp");
     }
 
-    // Các hàm helper hash/salt giữ nguyên như cũ
+   
     private String generateSalt() { byte[] b = new byte[16]; new SecureRandom().nextBytes(b); return Base64.getEncoder().encodeToString(b); }
     private String hashPassword(String p, String s) throws Exception { MessageDigest m = MessageDigest.getInstance("SHA-256"); m.update(s.getBytes()); return Base64.getEncoder().encodeToString(m.digest(p.getBytes())); }
     private String generateRandomPassword() { return "Pass@" + new Random().nextInt(999999); }

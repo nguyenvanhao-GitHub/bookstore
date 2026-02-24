@@ -1,12 +1,9 @@
-// Publisher Dashboard Script
 $(document).ready(function() {
-    // Initialize tooltips and popovers
     $('[data-bs-toggle="tooltip"]').tooltip();
     $('[data-bs-toggle="popover"]').popover();
 
 
 
-    // Load publisher statistics
     $.ajax({
         url: 'get-publisher-stats',
         type: 'GET',
@@ -16,7 +13,6 @@ $(document).ready(function() {
         }
     });
     
-    // Initialize DataTables
     if ($('#booksTable').length) {
         $('#booksTable').DataTable({
             responsive: true,
@@ -28,7 +24,6 @@ $(document).ready(function() {
         });
     }
 
-    // Password strength checker
     function checkPasswordStrength(password) {
         let strength = 0;
         const feedback = {
@@ -57,7 +52,6 @@ $(document).ready(function() {
         return feedback;
     }
 
-    // Handle password visibility toggle
     $('.toggle-password').click(function() {
         const targetId = $(this).data('target');
         const input = $('#' + targetId);
@@ -72,7 +66,6 @@ $(document).ready(function() {
         }
     });
 
-    // Password strength indicator
     $('#newPassword').on('input', function() {
         const password = $(this).val();
         const feedback = checkPasswordStrength(password);
@@ -86,7 +79,6 @@ $(document).ready(function() {
         strengthText.text(feedback.text).css('color', feedback.color);
     });
 
-    // Form validation with enhanced feedback
     $('.publisher-form').submit(function(e) {
         e.preventDefault();
         let isValid = true;
@@ -124,17 +116,14 @@ $(document).ready(function() {
         });
         
         if (isValid) {
-            // Show loading state
             const submitBtn = form.find('[type="submit"]');
             const originalText = submitBtn.text();
             submitBtn.prop('disabled', true)
                      .html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...');
             
-            // Simulate form submission (replace with actual AJAX call)
             setTimeout(function() {
                 submitBtn.prop('disabled', false).text(originalText);
                 
-                // Show success message
                 Swal.fire({
                     title: 'Success!',
                     text: 'Your changes have been saved.',
@@ -142,13 +131,11 @@ $(document).ready(function() {
                     confirmButtonColor: '#3498db'
                 });
                 
-                // Reset form state
                 form.find('.is-valid').removeClass('is-valid');
             }, 1000);
         }
     });
     
-    // Confirm actions with enhanced UI
     $('.publisher-confirm-action').click(function(e) {
         e.preventDefault();
         const actionUrl = $(this).attr('href');
@@ -184,7 +171,6 @@ $(document).ready(function() {
         });
     });
     
-    // Toggle sidebar on mobile
     $('.sidebar-toggle').click(function() {
         $('body').toggleClass('sidebar-active');
     });

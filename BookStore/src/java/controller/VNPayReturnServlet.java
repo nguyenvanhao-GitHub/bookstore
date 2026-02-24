@@ -13,6 +13,7 @@ import java.util.*;
 
 @WebServlet("/VNPayReturnServlet")
 public class VNPayReturnServlet extends HttpServlet {
+
     private static final long serialVersionUID = 1L;
 
     @Override
@@ -25,7 +26,7 @@ public class VNPayReturnServlet extends HttpServlet {
         HttpSession session = request.getSession();
 
         try {
-            // 1. Lấy tham số từ VNPay trả về
+            //Lấy tham số từ VNPay trả về
             Map<String, String> fields = new HashMap<>();
             for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements();) {
                 String fieldName = params.nextElement();
@@ -35,13 +36,17 @@ public class VNPayReturnServlet extends HttpServlet {
                 }
             }
 
-            // 2. Xác thực chữ ký (Checksum)
-            if (fields.containsKey("vnp_SecureHashType")) fields.remove("vnp_SecureHashType");
-            if (fields.containsKey("vnp_SecureHash")) fields.remove("vnp_SecureHash");
-            
+            // Xác thực chữ ký (Checksum)
+            if (fields.containsKey("vnp_SecureHashType")) {
+                fields.remove("vnp_SecureHashType");
+            }
+            if (fields.containsKey("vnp_SecureHash")) {
+                fields.remove("vnp_SecureHash");
+            }
+
             boolean signValid = VNPayConfig.verifyPayment(fields);
 
-            // 3. Xử lý kết quả
+            // Xử lý kết quả
             if (signValid) {
                 String vnp_ResponseCode = request.getParameter("vnp_ResponseCode");
                 String vnp_TxnRef = request.getParameter("vnp_TxnRef"); // Mã đơn hàng
@@ -49,7 +54,7 @@ public class VNPayReturnServlet extends HttpServlet {
 
                 if ("00".equals(vnp_ResponseCode)) {
                     // --- THANH TOÁN THÀNH CÔNG ---
-                    
+
                     @SuppressWarnings("unchecked")
                     Map<String, String> orderInfo = (Map<String, String>) session.getAttribute("orderInfo");
 
@@ -102,12 +107,12 @@ public class VNPayReturnServlet extends HttpServlet {
 
     private String buildEmailContent(String name, String orderId, String transId, double total) {
         return "<div style='font-family: Arial; padding: 20px; border: 1px solid #ddd; border-radius: 10px;'>"
-             + "<h2 style='color: #28a745;'>Thanh toán thành công!</h2>"
-             + "<p>Xin chào <b>" + name + "</b>,</p>"
-             + "<p>Đơn hàng <b>#" + orderId + "</b> của bạn đã được thanh toán thành công qua VNPay.</p>"
-             + "<p><strong>Mã giao dịch:</strong> " + transId + "</p>"
-             + "<p><strong>Tổng tiền:</strong> " + String.format("%,.0f", total) + " VNĐ</p>"
-             + "<p>Cảm ơn bạn đã mua sắm tại E-Books!</p></div>";
+                + "<h2 style='color: #28a745;'>Thanh toán thành công!</h2>"
+                + "<p>Xin chào <b>" + name + "</b>,</p>"
+                + "<p>Đơn hàng <b>#" + orderId + "</b> của bạn đã được thanh toán thành công qua VNPay.</p>"
+                + "<p><strong>Mã giao dịch:</strong> " + transId + "</p>"
+                + "<p><strong>Tổng tiền:</strong> " + String.format("%,.0f", total) + " VNĐ</p>"
+                + "<p>Cảm ơn bạn đã mua sắm tại E-Books!</p></div>";
     }
 
     private void showSuccessAlert(PrintWriter out, String orderId, String transId, double amount) {

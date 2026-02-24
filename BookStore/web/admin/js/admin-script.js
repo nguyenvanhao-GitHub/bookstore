@@ -1,6 +1,4 @@
-// Admin Dashboard Scripts
 
-// Sidebar Toggle Functionality
 document.addEventListener('DOMContentLoaded', function() {
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const adminSidebar = document.querySelector('.admin-sidebar');
@@ -13,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Close sidebar on mobile when clicking outside
+  
     document.addEventListener('click', function(event) {
         const isMobile = window.innerWidth <= 768;
         if (isMobile && !event.target.closest('.admin-sidebar') && !event.target.closest('#sidebar-toggle')) {
@@ -23,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Data Visualization Example (using Chart.js)
+
 function initializeCharts() {
     const salesChart = document.getElementById('salesChart');
     if (salesChart) {
@@ -55,7 +53,6 @@ function initializeCharts() {
     }
 }
 
-// Data Table Initialization
 function initializeDataTables() {
     const dataTables = document.querySelectorAll('.admin-table');
     dataTables.forEach(table => {
@@ -68,7 +65,6 @@ function initializeDataTables() {
     });
 }
 
-// Form Validation
 function validateForm(formId) {
     const form = document.getElementById(formId);
     if (!form) return;
@@ -82,20 +78,17 @@ function validateForm(formId) {
     });
 }
 
-// Initialize all components
 document.addEventListener('DOMContentLoaded', function() {
     initializeCharts();
     initializeDataTables();
     validateForm('adminProfileForm');
 
-    // Enable tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
 
-// Handle Image Preview
 function previewImage(input) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
@@ -106,7 +99,6 @@ function previewImage(input) {
     }
 }
 
-// Notification System
 const notifications = {
     show: function(message, type = 'info') {
         const toast = document.createElement('div');

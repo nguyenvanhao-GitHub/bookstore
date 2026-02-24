@@ -10,7 +10,6 @@ public class BookDAO {
 
     DBContext db = new DBContext();
 
-    // 1. Chức năng Thêm sách (Từ AddBookServlet)
     public boolean addBook(Book book) {
         String sql = "INSERT INTO books (image, name, author, price, stock, description, publisher_email, category, pdf_preview_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -22,7 +21,7 @@ public class BookDAO {
             ps.setString(6, book.getDescription());
             ps.setString(7, book.getPublisherEmail());
             ps.setString(8, book.getCategory());
-            ps.setString(9, book.getPdfPreviewPath()); // [MỚI]
+            ps.setString(9, book.getPdfPreviewPath());
 
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
@@ -33,7 +32,6 @@ public class BookDAO {
 
     public List<Book> getBooksByPublisher(String email, int start, int total) {
         List<Book> list = new ArrayList<>();
-        // [CẬP NHẬT SQL] Thêm LIMIT ?, ? cho phân trang
         String sql = "SELECT * FROM books WHERE publisher_email = ? ORDER BY id DESC LIMIT ?, ?";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
@@ -41,7 +39,7 @@ public class BookDAO {
             ps.setInt(3, total);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                // Giả định hàm mapResultSetToBook(rs) tồn tại và hoạt động đúng
+
                 list.add(mapResultSetToBook(rs));
             }
         } catch (Exception e) {
@@ -50,10 +48,28 @@ public class BookDAO {
         return list;
     }
 
-    // 2. Lấy sách theo Category (Từ BookRecommendationServlet)
+    // Hàm lấy tất cả sách để map hình ảnh
+    public List<Book> getAllBooks() {
+        List<Book> list = new ArrayList<>();
+        String sql = "SELECT * FROM books";
+        try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Book b = new Book();
+                b.setId(rs.getInt("id"));
+                b.setName(rs.getString("name"));
+                b.setImage(rs.getString("image"));
+                list.add(b);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public List<Book> getBooksByCategory(String category, int excludeBookId) {
         List<Book> list = new ArrayList<>();
-        // [CẬP NHẬT SQL] Thêm pdf_preview_path
         String sql = "SELECT id, name, author, price, category, image, pdf_preview_path FROM books WHERE category = ? AND id != ? ORDER BY RAND() LIMIT 6";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, category);
@@ -93,10 +109,8 @@ public class BookDAO {
         return list;
     }
 
-    // 3. Lấy sách theo Author (Từ BookRecommendationServlet)
     public List<Book> getBooksByAuthor(String author, int excludeBookId) {
         List<Book> list = new ArrayList<>();
-        // [CẬP NHẬT SQL] Thêm pdf_preview_path
         String sql = "SELECT id, name, author, price, category, image, pdf_preview_path FROM books WHERE author = ? AND id != ? ORDER BY RAND() LIMIT 6";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, author);
@@ -111,10 +125,8 @@ public class BookDAO {
         return list;
     }
 
-    // 4. Lấy sách phổ biến (Từ BookRecommendationServlet)
     public List<Book> getPopularBooks() {
         List<Book> list = new ArrayList<>();
-        // [CẬP NHẬT SQL] Thêm b.pdf_preview_path
         String sql = "SELECT b.id, b.name, b.author, b.price, b.category, b.image, b.pdf_preview_path, COUNT(c.book_id) as order_count " // Sửa c.id -> c.book_id nếu cần, hoặc giữ nguyên tùy DB
                 + "FROM books b LEFT JOIN cart c ON b.id = c.book_id "
                 + "GROUP BY b.id ORDER BY order_count DESC, RAND() LIMIT 6";
@@ -128,11 +140,10 @@ public class BookDAO {
         return list;
     }
 
-    // 5. Gợi ý cá nhân hóa (Logic phức tạp từ BookRecommendationServlet)
     public List<Book> getPersonalizedRecommendations(String userEmail) {
         List<Book> list = new ArrayList<>();
         try (Connection conn = db.getConnection()) {
-            // B1: Tìm các category user hay mua nhất
+            //Tìm các category user hay mua nhất
             String catSql = "SELECT b.category, COUNT(*) as count FROM orders o "
                     + "JOIN cart c ON o.email = c.user_email JOIN books b ON c.book_id = b.id "
                     + "WHERE o.email = ? GROUP BY b.category ORDER BY count DESC LIMIT 3";
@@ -150,7 +161,7 @@ public class BookDAO {
                 return getPopularBooks();
             }
 
-            // B2: Lấy sách thuộc category đó nhưng chưa mua
+            //Lấy sách thuộc category đó nhưng chưa mua
             StringBuilder sql = new StringBuilder("SELECT DISTINCT b.id, b.name, b.author, b.price, b.category, b.image FROM books b WHERE b.category IN (");
             for (int i = 0; i < favCategories.size(); i++) {
                 sql.append(i == 0 ? "?" : ",?");
@@ -174,7 +185,6 @@ public class BookDAO {
         return list;
     }
 
-    // 6. Lấy sách tương tự (Logic phức tạp từ BookRecommendationServlet)
     public List<Book> getSimilarBooks(int bookId) {
         Book currentBook = getBookById(bookId);
         if (currentBook == null) {
@@ -182,7 +192,6 @@ public class BookDAO {
         }
 
         List<Book> list = new ArrayList<>();
-        // [CẬP NHẬT SQL] Thêm pdf_preview_path
         String sql = "SELECT id, name, author, price, category, image, pdf_preview_path FROM books "
                 + "WHERE (category = ? OR author = ?) AND id != ? "
                 + "ORDER BY CASE WHEN category = ? AND author = ? THEN 1 WHEN category = ? THEN 2 ELSE 3 END, RAND() LIMIT 6";
@@ -206,8 +215,6 @@ public class BookDAO {
         return list;
     }
 
-    // Helper: Lấy thông tin cơ bản 1 sách
-    // Thêm vào trong class BookDAO
     public Book getBookById(int id) {
         String sql = "SELECT * FROM books WHERE id = ?";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -223,7 +230,7 @@ public class BookDAO {
     }
 
     // Helper: Map ResultSet to Object để tránh lặp code
-    // Helper: Map ResultSet to Object cơ bản (Thêm pdf_preview_path)
+    // Helper: Map ResultSet to Object cơ bản 
     private Book mapResultSetToBookBasic(ResultSet rs) throws SQLException {
         return new Book(
                 rs.getInt("id"),
@@ -232,7 +239,7 @@ public class BookDAO {
                 rs.getDouble("price"),
                 rs.getString("category"),
                 rs.getString("image"),
-                rs.getString("pdf_preview_path") // [MỚI] Thêm trường này
+                rs.getString("pdf_preview_path")
         );
     }
 
@@ -287,7 +294,6 @@ public class BookDAO {
 
     public List<Book> searchBooks(String query) {
         List<Book> list = new ArrayList<>();
-        // [CẬP NHẬT SQL] Thêm pdf_preview_path
         String sql = "SELECT id, name, author, price, image, category, pdf_preview_path FROM books "
                 + "WHERE LOWER(name) LIKE ? OR LOWER(author) LIKE ? OR LOWER(category) LIKE ? "
                 + "ORDER BY CASE WHEN LOWER(name) LIKE ? THEN 1 WHEN LOWER(author) LIKE ? THEN 2 ELSE 3 END, name ASC LIMIT 12";
@@ -323,9 +329,6 @@ public class BookDAO {
         return list;
     }
 
-    /**
-     * Lấy danh sách sách trong Wishlist của user Dùng cho: wishlist.jsp
-     */
     public List<Book> getWishlistBooks(int userId) {
         List<Book> list = new ArrayList<>();
         String sql = "SELECT b.* FROM wishlist w JOIN books b ON w.book_id = b.id WHERE w.user_id = ? ORDER BY w.id DESC"; // Sắp xếp theo lúc thêm
@@ -360,10 +363,8 @@ public class BookDAO {
         }
         return b;
     }
-    
-    // File: java/dao/BookDAO.java
 
-    // 1. Đếm tổng số sách trong 1 danh mục (để tính số trang)
+    //Đếm tổng số sách trong 1 danh mục (để tính số trang)
     public int countBooksByCategory(String category) {
         String sql = "SELECT COUNT(*) FROM books WHERE category = ?";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -378,7 +379,7 @@ public class BookDAO {
         return 0;
     }
 
-    // 2. Lấy sách theo danh mục có phân trang (LIMIT, OFFSET)
+    // Lấy sách theo danh mục có phân trang (LIMIT, OFFSET)
     public List<Book> getBooksByCategoryPaginated(String category, int start, int total) {
         List<Book> list = new ArrayList<>();
         String sql = "SELECT * FROM books WHERE category = ? ORDER BY id DESC LIMIT ?, ?";
@@ -388,7 +389,7 @@ public class BookDAO {
             ps.setInt(3, total);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                list.add(mapResultSetToBook(rs)); // Sử dụng hàm map đã có
+                list.add(mapResultSetToBook(rs));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -399,7 +400,6 @@ public class BookDAO {
     //hàm lấy danh sách sách có phân trang cho Admin
     public List<entity.Book> getAllBooks(int start, int total) {
         List<entity.Book> list = new ArrayList<>();
-        // [CẬP NHẬT SQL] Thêm pdf_preview_path vào câu SELECT
         String sql = "SELECT id, name, author, price, stock, category, image, pdf_preview_path FROM books ORDER BY id DESC LIMIT ?, ?";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, start);
@@ -447,7 +447,6 @@ public class BookDAO {
         return 0;
     }
 
-    // Thêm vào class BookDAO
     // Lấy danh sách sách của một Publisher cụ thể
     public List<Book> getBooksByPublisher(String email) {
         List<Book> list = new ArrayList<>();
@@ -542,7 +541,6 @@ public class BookDAO {
         return -1; // Trả về -1 nếu không tìm thấy
     }
 
-    // Thêm vào class BookDAO.java
     /**
      * Lấy danh sách sách nổi bật có phân trang
      *

@@ -16,24 +16,20 @@ public class ForgotPasswordServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String email = request.getParameter("email");
         UserDAO dao = new UserDAO();
-        
+
         int userId = dao.getUserIdByEmail(email);
 
         if (userId != -1) {
             try {
-                // 1. Tạo mật khẩu ngẫu nhiên
                 String newPass = generateRandomPassword();
-                
-                // 2. [MỚI] Tạo Salt mới
+
                 String salt = generateSalt();
-                
-                // 3. Hash mật khẩu với Salt
+
                 String hashedPass = hashPassword(newPass, salt);
 
-                // 4. Cập nhật vào DB (DAO cần update hàm updatePassword để nhận thêm salt)
                 if (dao.updatePassword(userId, hashedPass, salt)) {
                     EmailUtils.sendPasswordResetEmail(email, newPass);
                     request.setAttribute("message", "Mật khẩu mới đã được gửi vào email!");
@@ -51,7 +47,7 @@ public class ForgotPasswordServlet extends HttpServlet {
             request.setAttribute("message", "Email không tồn tại.");
             request.setAttribute("messageType", "danger");
         }
-        
+
         request.getRequestDispatcher("forgot-password.jsp").forward(request, response);
     }
 

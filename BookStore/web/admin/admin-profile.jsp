@@ -6,25 +6,19 @@
 <%@ include file="header.jsp" %>
 <%
     String userEmail = (String) session.getAttribute("adminEmail");
-    
-    // --- BỔ SUNG LOGIC FLASH MESSAGE ---
+
     String alertIcon = (String) session.getAttribute("alertIcon");
     String alertTitle = (String) session.getAttribute("alertTitle");
     String alertMessage = (String) session.getAttribute("alertMessage");
 
-    // XÓA các thuộc tính Session ngay lập tức
     if (alertIcon != null) {
         session.removeAttribute("alertIcon");
         session.removeAttribute("alertTitle");
         session.removeAttribute("alertMessage");
     }
-    // --- END LOGIC FLASH MESSAGE ---
-    
-    // [SỬA LỖI] Thay thế logic DB cũ bằng cách gọi DAO
     AdminDAO dao = new AdminDAO();
     Admin admin = dao.getAdminByEmail(userEmail);
-    
-    // Kiểm tra và lấy dữ liệu
+
     String userName = admin != null ? admin.getName() : (String) session.getAttribute("adminName");
     String contact = admin != null ? admin.getContact() : "";
     String status = admin != null ? admin.getStatus() : "N/A";
@@ -44,10 +38,10 @@
                 <div class="mb-3">
                     <img src="../images/admin.png" alt="Admin" class="rounded-circle img-thumbnail" style="width: 120px;">
                 </div>
-                <h4 class="mb-1"><%= userName %></h4>
-                <p class="text-muted"><%= userEmail %></p>
-                <span class="badge bg-success mb-3"><%= status != null ? status : "Active" %></span>
-                <p><i class="fas fa-phone me-2"></i> <%= contact != null ? contact : "N/A" %></p>
+                <h4 class="mb-1"><%= userName%></h4>
+                <p class="text-muted"><%= userEmail%></p>
+                <span class="badge bg-success mb-3"><%= status != null ? status : "Active"%></span>
+                <p><i class="fas fa-phone me-2"></i> <%= contact != null ? contact : "N/A"%></p>
             </div>
         </div>
 
@@ -63,7 +57,7 @@
                                 <small class="text-muted d-block">Last Login</small>
                                 <h6 class="mb-0 text-primary">
                                     <i class="fas fa-sign-in-alt me-2"></i>
-                                    <%= lastLogin != null ? sdf.format(lastLogin) : "Never" %>
+                                    <%= lastLogin != null ? sdf.format(lastLogin) : "Never"%>
                                 </h6>
                             </div>
                         </div>
@@ -72,25 +66,25 @@
                                 <small class="text-muted d-block">Last Logout</small>
                                 <h6 class="mb-0 text-danger">
                                     <i class="fas fa-sign-out-alt me-2"></i>
-                                    <%= lastLogout != null ? sdf.format(lastLogout) : "Never" %>
+                                    <%= lastLogout != null ? sdf.format(lastLogout) : "Never"%>
                                 </h6>
                             </div>
                         </div>
                     </div>
-                    
+
                     <h5 class="mb-3">Update Information</h5>
                     <form action="../UpdateAdminProfileServlet" method="post">
                         <div class="mb-3">
                             <label class="form-label">Full Name</label>
-                            <input type="text" name="name" class="form-control" value="<%= userName %>" required>
+                            <input type="text" name="name" class="form-control" value="<%= userName%>" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Contact Number</label>
-                            <input type="text" name="contact" class="form-control" value="<%= contact %>">
+                            <input type="text" name="contact" class="form-control" value="<%= contact%>">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Email</label>
-                            <input type="email" name="email" class="form-control" value="<%= userEmail %>" required>
+                            <input type="email" name="email" class="form-control" value="<%= userEmail%>" required>
                         </div>
                         <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Save Changes</button>
                     </form>
@@ -119,16 +113,15 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    <% 
-        // Hiển thị thông báo (chỉ một lần)
+    <%
         if (alertIcon != null) {
     %>
-        Swal.fire({
-            icon: '<%= alertIcon %>',
-            title: '<%= alertTitle %>',
-            text: '<%= alertMessage != null ? alertMessage : "" %>',
-            timer: 2000,
-            showConfirmButton: false
-        });
-    <% } %>
+    Swal.fire({
+        icon: '<%= alertIcon%>',
+        title: '<%= alertTitle%>',
+        text: '<%= alertMessage != null ? alertMessage : ""%>',
+        timer: 2000,
+        showConfirmButton: false
+    });
+    <% }%>
 </script>

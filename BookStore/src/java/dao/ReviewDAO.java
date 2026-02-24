@@ -16,7 +16,6 @@ public class ReviewDAO {
 
     DBContext db = new DBContext();
 
-    // Kiểm tra xem user đã đánh giá sách này chưa
     public boolean hasReviewed(String email, int bookId) {
         String query = "SELECT id FROM reviews WHERE user_email = ? AND book_id = ?";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(query)) {
@@ -30,7 +29,6 @@ public class ReviewDAO {
         return false;
     }
 
-    // Thêm review mới
     public boolean addReview(Review review) {
         String query = "INSERT INTO reviews (user_email, book_id, rating, comment, created_at) VALUES (?, ?, ?, ?, NOW())";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(query)) {
@@ -109,23 +107,19 @@ public class ReviewDAO {
     public List<Map<String, Object>> getAllReviewsWithDetails(int offset, int pageSize) {
         List<Map<String, Object>> list = new ArrayList<>();
 
-        // SQL chuẩn cho MySQL: LIMIT [số lượng] OFFSET [vị trí bắt đầu]
         String sql = "SELECT r.id, r.user_email, r.rating, r.comment, r.created_at, b.name as book_name "
                 + "FROM reviews r "
                 + "JOIN books b ON r.book_id = b.id "
                 + "ORDER BY r.created_at DESC "
                 + "LIMIT ? OFFSET ?";
 
-        // Debug: In ra console để kiểm tra xem hàm có được gọi không
         System.out.println("DEBUG: Getting reviews with Limit: " + pageSize + ", Offset: " + offset);
 
-        try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) { // 1. Chỉ tạo PreparedStatement ở đây
+        try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) { 
 
-            // 2. QUAN TRỌNG: Gán tham số TRƯỚC KHI execute
-            ps.setInt(1, pageSize); // LIMIT
-            ps.setInt(2, offset);   // OFFSET
+            ps.setInt(1, pageSize); 
+            ps.setInt(2, offset);  
 
-            // 3. Bây giờ mới thực thi câu lệnh
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> map = new HashMap<>();
@@ -139,16 +133,14 @@ public class ReviewDAO {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace(); // Xem log server nếu có lỗi SQL
+            e.printStackTrace(); 
         }
 
-        // Debug: Kiểm tra size list trả về
         System.out.println("DEBUG: Found " + list.size() + " reviews.");
 
         return list;
     }
 
-    // Đảm bảo hàm đếm tổng số lượng vẫn đúng
     public int getTotalReviewsCount() {
         String sql = "SELECT COUNT(*) FROM reviews";
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {

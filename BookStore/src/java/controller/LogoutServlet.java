@@ -9,21 +9,22 @@ import java.io.IOException;
 
 @WebServlet("/LogoutServlet")
 public class LogoutServlet extends HttpServlet {
-    
+
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         handleLogout(request, response);
     }
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         handleLogout(request, response);
     }
-    
+
     private void handleLogout(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
-        
+
         if (session != null) {
             String userEmail = (String) session.getAttribute("userEmail");
             Integer userId = (Integer) session.getAttribute("userId");
-            
+
             // Xóa Cookie RememberMe
             Cookie[] cookies = request.getCookies();
             if (cookies != null) {
@@ -36,23 +37,23 @@ public class LogoutServlet extends HttpServlet {
                     }
                 }
             }
-            if (userId != null) RememberMeUtil.deleteTokenByUserId(userId);
-            
-            // Gọi DAO cập nhật status
+            if (userId != null) {
+                RememberMeUtil.deleteTokenByUserId(userId);
+            }
+
             if (userEmail != null) {
                 UserDAO dao = new UserDAO();
                 dao.logout(userEmail);
             }
-            
+
             session.invalidate();
         }
 
-        // Tạo session mới để hiển thị alert
         HttpSession newSession = request.getSession();
         newSession.setAttribute("alertIcon", "success");
         newSession.setAttribute("alertTitle", "Đăng xuất thành công");
         newSession.setAttribute("alertMessage", "Hẹn gặp lại bạn!");
-        
+
         response.sendRedirect("login.jsp");
     }
 }

@@ -8,7 +8,7 @@ import java.sql.SQLException;
 public class DBContext {
     private static final String DB_URL = "jdbc:mysql://localhost:3306/bookstore?useUnicode=true&characterEncoding=UTF-8";
     private static final String DB_USER = "root";
-    private static final String DB_PASS = "";
+    private static final String DB_PASS = "123456789";
 
     public Connection getConnection() throws ClassNotFoundException, SQLException {
         Class.forName("com.mysql.cj.jdbc.Driver");

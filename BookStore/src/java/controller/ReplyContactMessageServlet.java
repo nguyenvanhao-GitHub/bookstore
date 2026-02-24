@@ -5,35 +5,38 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 @WebServlet("/ReplyContactMessageServlet")
 public class ReplyContactMessageServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        
         request.setCharacterEncoding("UTF-8");
-        String to = request.getParameter("recipients");
-        String subject = request.getParameter("subject");
-        String messageContent = request.getParameter("message");
+        HttpSession session = request.getSession();
 
-        response.setContentType("text/html;charset=UTF-8");
-        PrintWriter out = response.getWriter();
+        String to = request.getParameter("recipients"); 
+        String subject = request.getParameter("subject"); 
+        String messageContent = request.getParameter("message"); 
 
         try {
             EmailUtils.send(to, subject, messageContent);
-            showAlert(out, "success", "Đã gửi phản hồi!", "Email đã được gửi thành công.", "admin/contact.jsp");
+            
+            setAlert(session, "success", "Đã gửi", "Phản hồi đã được gửi thành công đến " + to);
+            
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert(out, "error", "Lỗi gửi mail", e.getMessage(), "admin/contact.jsp");
+            setAlert(session, "error", "Lỗi gửi mail", "Không thể gửi mail: " + e.getMessage());
         }
+        
+        response.sendRedirect("admin/contact.jsp");
     }
 
-    private void showAlert(PrintWriter out, String icon, String title, String text, String url) {
-        out.println("<!DOCTYPE html><html><head><script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script></head><body>");
-        out.println("<script>");
-        out.println("Swal.fire({icon:'" + icon + "', title:'" + title + "', text:'" + text + "'})");
-        out.println(".then(() => { window.location='" + url + "'; });");
-        out.println("</script></body></html>");
+    private void setAlert(HttpSession session, String icon, String title, String msg) {
+        session.setAttribute("alertIcon", icon);
+        session.setAttribute("alertTitle", title);
+        session.setAttribute("alertMessage", msg);
     }
 }

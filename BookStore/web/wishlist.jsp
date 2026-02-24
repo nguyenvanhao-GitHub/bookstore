@@ -1,22 +1,20 @@
+<%@page import="utils.LanguageHelper"%>
 <%@ page import="dao.WishlistDAO" %>
 <%@ page import="entity.Book" %>
 <%@ page import="java.util.List" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%
-    // Kiểm tra đăng nhập
     Integer userId = (Integer) session.getAttribute("userId");
     if (userId == null) {
         response.sendRedirect("login.jsp");
         return;
     }
 
-    // Gọi DAO lấy dữ liệu
     WishlistDAO wishlistDAO = new WishlistDAO();
     List<Book> wishlistItems = wishlistDAO.getWishlistByUserId(userId);
     int totalItems = wishlistItems.size();
 
-    // Tính tổng giá trị (Logic: giá * 300 như các trang khác)
     double totalValue = wishlistDAO.getTotalWishlistValue(userId) * 300;
 %>
 
@@ -30,7 +28,7 @@
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
         <style>
-            /* CSS giữ nguyên từ file cũ của bạn */
+
             :root {
                 --primary-color: #2563eb;
                 --danger-color: #dc2626;
@@ -319,30 +317,30 @@
 
         <div class="wishlist-header">
             <h2>
-                <i class="fas fa-heart"></i> Danh sách yêu thích
+                <i class="fas fa-heart"></i> <%= LanguageHelper.getText(request, "wishlist.title")%>
             </h2>
             <div class="wishlist-stats">
                 <div class="stat-item">
                     <span class="stat-number"><%= totalItems%></span>
-                    <span class="stat-label">Sản phẩm</span>
+                    <span class="stat-label"><%= LanguageHelper.getText(request, "wishlist.product")%></span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-number"><%= String.format("%,.0f", totalValue)%> đ</span>
-                    <span class="stat-label">Tổng giá trị</span>
+                    <span class="stat-label"><%= LanguageHelper.getText(request, "wishlist.total")%></span>
                 </div>
             </div>
         </div>
 
         <div class="wishlist-container">
             <div class="row">
-                <% if (wishlistItems.isEmpty()) { %>
+                <% if (wishlistItems.isEmpty()) {%>
                 <div class="col-12">
                     <div class="empty-wishlist">
                         <i class="fas fa-heart-broken"></i>
-                        <h3>Danh sách yêu thích trống</h3>
-                        <p>Bạn chưa có sách nào trong danh sách yêu thích.<br>Hãy khám phá và thêm những cuốn sách bạn yêu thích!</p>
+                        <h3><%= LanguageHelper.getText(request, "wishlist.empty.title")%></h3>
+                        <p><%= LanguageHelper.getText(request, "wishlist.empty.desc")%></p>
                         <a href="categories.jsp">
-                            <i class="fas fa-book"></i> Khám phá sách ngay
+                            <i class="fas fa-book"></i> <%= LanguageHelper.getText(request, "wishlist.explore")%>
                         </a>
                     </div>
                 </div>
@@ -396,8 +394,8 @@
                 event.stopPropagation();
 
                 Swal.fire({
-                    title: 'Xác nhận xóa',
-                    text: 'Bạn có chắc muốn xóa sách này khỏi danh sách yêu thích?',
+                    title: '<%= LanguageHelper.getText(request, "no.confirm")%>',
+                    text: '<%= LanguageHelper.getText(request, "no.sure")%>',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#dc2626',
@@ -416,7 +414,7 @@
                                     if (data.status === 'success') {
                                         Swal.fire({
                                             icon: 'success',
-                                            title: 'Đã xóa!',
+                                            title: '<%= LanguageHelper.getText(request, "wishlist.remove.success")%>',
                                             showConfirmButton: false,
                                             timer: 1000
                                         }).then(() => location.reload());
